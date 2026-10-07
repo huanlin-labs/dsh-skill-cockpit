@@ -1,0 +1,31 @@
+# dsh-skill-panel bundle patch
+#
+# Mounts the loader row for this plugin. The host half (lib/index.js) serves
+# read-only JSON over local HTTP routes (/__dsh-skill-panel/*): it enumerates
+# ALL six skill-root kinds the filesystem provider knows about
+# (project-dsh / project-agents / custom / user-dsh / user-agents / bundled),
+# parses each entry's YAML frontmatter and reports why the runtime would drop
+# one (dropped:no-frontmatter | dropped:unclosed | dropped:bad-yaml |
+# dropped:missing-fields) instead of hiding it. The only write route is a
+# single entry-file rename (SKILL.md -> SKILL.md.disabled) and it is refused
+# for project-level roots.
+#
+# The client half (lib/client.js, declared via dsh.client) registers the
+# 「技能」 page as a tab type of DSH's native right Sidebar through the
+# third-party dsh-better-sidebar service ctx.betterSidebar — so this plugin
+# declares NO @deepseek-ai/dsh* peer dependency at all.
+#
+# Mount into a profile either by adding "dsh-skill-panel" to the profile's
+# `dsh.profile.bundles` list, or by inserting the same row through a user
+# patch layer:
+#
+#   - insert:
+#       - id: skill-panel
+#         name: 'dsh-skill-panel'
+#
+# The `name` is the npm package itself; the loader resolves it from the
+# profile's node_modules (installed via the profile's own package manager).
+
+- insert:
+    - id: skill-panel
+      name: 'dsh-skill-panel'
