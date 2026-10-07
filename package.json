@@ -1,13 +1,13 @@
 {
   "name": "dsh-skill-panel",
-  "version": "0.1.0",
-  "description": "Skills panel for DeepSeek Harness: a full-page tab in DSH's native right Sidebar that lists every skill this machine actually exposes (all six skill-root kinds, not just ~/.dsh/skills), shows why a skill is invisible (dropped:* / root-missing / disabled), and toggles a single skill by renaming only its entry file (SKILL.md -> SKILL.md.disabled). Read-only for project-level roots.",
+  "version": "0.2.0",
+  "description": "Skills panel for DeepSeek Harness: an application-level nav row (official sidebar.panellist slot, order 5 — between Plugins and Schedule) opening a full center-column page that lists every skill this machine actually exposes (all six skill-root kinds, not just ~/.dsh/skills), shows why a skill is invisible (dropped:* / root-missing / disabled), and toggles a single skill by renaming only its entry file (SKILL.md -> SKILL.md.disabled). Read-only for project-level roots.",
   "keywords": [
     "dsh",
     "dsh-plugin",
     "dsh-bundle",
     "skills",
-    "sidebar",
+    "panellist",
     "skill-panel"
   ],
   "license": "MIT",

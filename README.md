@@ -1,9 +1,12 @@
 # dsh-skill-panel
 
-DSH（DeepSeek Harness）**技能面板**：在 DSH 原生右侧栏里加一整页「技能」，
-列出本机**全部**技能、**按技能开关**，并接「未安装技能索引」做第二跳。
+DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加一个「技能」入口，
+点开是**主区一整页**，列出本机**全部**技能、**按技能开关**，并接「未安装技能索引」做第二跳。
 
-- 挂载点：第三方 `dsh-better-sidebar` 对外服务 **`ctx.betterSidebar.registerTab`**（v0.19.0 起注册的 tab 即 DSH 原生右侧栏页面）
+- 挂载点 = **官方 `slots` 扩展点**的两个座位（不再走第三方 `dsh-better-sidebar`）：
+  1. `sidebar.panellist`（root 作用域的 **list**，即左上应用级导航排）→ 图标行，`order: 5`；
+  2. `main`（root 作用域的 **keyed**）→ 主区整页，`key` 与行 `id` 同名（`skill-panel`）。
+- **顺序严格夹在「插件」(order 0) 与「自动化任务」(order 10) 之间** —— 外壳按 `order` 升序排（`sort((a,b)=>a.order-b.order)`），5 落在唯一的空档里，与加载先后无关。
 - 因此本包**不声明任何 `@deepseek-ai/dsh*` peer** ⇒ 不受 DSH 兼容性豁免闸门影响（见工作区 `AGENTS.md` §四 铁律 1/3）
 - 纯 ESM JavaScript，无构建链：`lib/*.js` 直接可跑，自测用 `node` 即可复跑
 
@@ -85,21 +88,23 @@ node test/run-all.mjs [报告目录]
 | `run-data-layer.mjs` | 六类根 / `dropped:*` 全可达（合成 fixture）/ `root-missing` / **独立目录遍历比对（不多报、不漏报）** / 字节数与磁盘一致 |
 | `run-toggle.mjs` | 在**真实** `~/.dsh/skills` 上对 1 个新建探针做 改名→停用→改回 闭环：sha256 一致、根项数不变、面板仍显示"已停用"、清理后零残留；另含目录/非入口/根外/项目级四类拒绝路径 |
 | `run-routes.mjs` | 假 ctx 跑真 `apply()`：5 条路由注册、200/400/403/405、ping |
-| `run-client.mjs` | 假 `__ModuleLoader__` + React 桩：bundle 求值、tab 描述符、健康/坏 frontmatter/第二跳/确认条/错误态五种渲染 |
+| `run-client.mjs` | 假 `__ModuleLoader__` + React 桩：bundle 求值、**挂载对（`sidebar.panellist` 行 id/order/label + `main` keyed 页 key 一致）**、`order=5` 夹位断言、**座位未声明时不注册也不抛错**、健康/坏 frontmatter/第二跳/确认条/错误态/**无 `useSessions` 降级**七种渲染 |
 
 ## 边界（有意不做）
 
 - 项目级根**不写**（安全边界：工作区 = 权限域）
 - 不安装、不下载、不删除任何技能；停用只改名，文件内容一字节不动
 - 不做"最近被加载"（要动宿主埋点，成本大于收益）
-- 不用 better-sidebar 的 `pluginSettings` 当技能开关（那是假开关）
+- 不保留任何"面板侧开关状态"（技能开关 = 文件名，见上）
 
 ## 未实查项（如实标注）
 
 - `bundledSkillDir` 的实际取值：本机 `$DSH_BUNDLED_SKILL_DIR` 未设置、profile patch 里也没有该配置项
   ⇒ 本插件按"未挂载"如实显示。会话可见 39 条 vs `~/.dsh/skills` 31 条的差额来源**仍未定位**
   （`app.asar` 内未见 `reviewer-response` 之类的技能文件；`E:\DSH\resources` 下也无）。面板不会替它猜。
-- `@deepseek-ai/dsh-client-*` 原生 Slot 树（设计方案的 H4）未实查：需装 `dsh-tool-cordis`（= 改装配）。
+- `@deepseek-ai/dsh-client-*` 原生 Slot 树（设计方案的 H4）**已实查**：本次改挂载面时从**运行中的 `E:\DSH\resources\app.asar`**（0.2.0-rc.2）字节扫描确认 `sidebar.panellist` / `main` 两个座位、`order` 升序语义、以及各占用方（`client-ui-plugin-manager` 0 / `client-ui-schedule` 10 / task-board 20 / ssh 40）。
+- 生态惯例与户主指定顺序**不一致**（已如实上报）：`dsh-ssh` 源码注释把 0/10/20/30/40 记为「Plugins / Schedule / board / **skill center 30**」，即生态预留 30 给"技能中心"；本包按户主明确要求取 **5**（夹在 插件 0 与 自动化任务 10 之间）。要改回 30 只需改 `lib/client.js` 的 `PANEL_ORDER` 一个数字。
+- 重启后**真实 GUI 渲染**（左排出现「技能」、点击开整页、右侧栏不再出现）**尚未经人眼确认** —— `lib/client.js` 是启动时载入的，必须由户主重启 dsh 才装载。
 
 ## 许可
 

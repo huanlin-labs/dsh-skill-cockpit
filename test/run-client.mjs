@@ -7,16 +7,18 @@
  * test fakes exactly that protocol — `window.__ModuleLoader__.load({id,factory})`
  * plus a `require('react')` stub — and then:
  *   1. evaluates the bundle and checks the exports (`apply` / `inject`);
- *   2. runs `apply(ctx)` against a fake ctx and asserts the tab descriptor the
- *      page is registered with (id / title / single / component);
- *   3. renders the component with a hook harness in three states — a healthy
- *      scan, a scan containing a `dropped:*` entry, and an
- *      undeclared-index hit — and asserts each is really drawn.
+ *   2. runs `apply(ctx)` against a fake `slots` service and asserts the MOUNT
+ *      SURFACE: one `sidebar.panellist` row (id / order / label) plus one `main`
+ *      keyed page under the same key — the official global-panel pair;
+ *   3. renders the page with a hook harness in four states — a healthy scan, a
+ *      scan containing a `dropped:*` entry, an undeclared-index hit and the
+ *      no-`useSessions` fallback — and asserts each is really drawn.
  *
- * It cannot verify pixels or the real sidebar; that needs dsh running again
+ * It cannot verify pixels or the real shell; that needs dsh running again
  * (see the assembly checklist). It does catch the class of bug that matters
- * here: a bundle that never evaluates, a wrong descriptor, a render crash, a
- * branch that silently renders nothing.
+ * here: a bundle that never evaluates, a wrong row descriptor or order, a page
+ * registered under a key the row cannot address, a render crash, a branch that
+ * silently renders nothing.
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -126,6 +128,34 @@ async function loadBundle(fakeReact) {
   });
 }
 
+/**
+ * Build a fake client ctx whose `slots` service records every registration.
+ * `declared` controls whether `inject` fires its callback — that is exactly the
+ * "the owning shell has declared the seat" gate.
+ */
+function makeCtx(declared = true) {
+  const registrations = [];
+  const effects = [];
+  const ctx = {
+    effect(callback) {
+      const disposer = callback();
+      effects.push(disposer);
+      return () => typeof disposer === 'function' && disposer();
+    },
+    slots: {
+      inject(name, callback) {
+        if (declared) callback();
+        return () => {};
+      },
+      register(options, component) {
+        registrations.push({ options, component });
+        return () => {};
+      },
+    },
+  };
+  return { ctx, registrations, effects };
+}
+
 // ---- 1. evaluate + exports ------------------------------------------------
 
 const react = makeReact();
@@ -134,34 +164,49 @@ const exports_ = await loadBundle(react);
 check('client bundle 通过 __ModuleLoader__ 注册了自己', captured?.id === 'dsh-skill-panel', captured?.id);
 check('factory 返回 apply 函数', typeof exports_?.apply === 'function');
 check(
-  'factory 声明 inject: ["betterSidebar"]',
-  Array.isArray(exports_.inject) && exports_.inject.length === 1 && exports_.inject[0] === 'betterSidebar',
+  'factory 声明 inject: ["slots"]（官方扩展点，不再依赖 betterSidebar）',
+  Array.isArray(exports_.inject) && exports_.inject.length === 1 && exports_.inject[0] === 'slots',
   JSON.stringify(exports_.inject),
 );
 
-// ---- 2. apply() → tab descriptor ------------------------------------------
+// ---- 2. apply() → the global-panel mount pair ------------------------------
 
-let descriptor = null;
-const effects = [];
-exports_.apply({
-  effect(callback) {
-    const disposer = callback();
-    effects.push(disposer);
-    return () => typeof disposer === 'function' && disposer();
-  },
-  betterSidebar: {
-    registerTab(d) {
-      descriptor = d;
-      return () => {};
-    },
-  },
-});
+const run = makeCtx(true);
+exports_.apply(run.ctx);
+const row = run.registrations.find((r) => r.options.name === 'sidebar.panellist');
+const page = run.registrations.find((r) => r.options.name === 'main');
 
-check('apply 用 ctx.effect 注册 tab（可回收）', effects.length === 1);
-check('tab id = skill-panel', descriptor?.id === 'skill-panel', descriptor?.id);
-check('tab 有中文标题', typeof descriptor?.title === 'string' && descriptor.title.length > 0, descriptor?.title);
-check('tab 单例 + 有描述', descriptor?.single === true && typeof descriptor?.description === 'string');
-check('component 是函数', typeof descriptor?.component === 'function');
+check('apply 用 ctx.effect 注册（可回收）', run.effects.length === 1);
+check('注册了 2 个座位（左排 nav 行 + 主区整页）', run.registrations.length === 2, String(run.registrations.length));
+check('nav 行落在 sidebar.panellist（应用级导航 list 座位）', Boolean(row), row?.options.name);
+check('nav 行 id = skill-panel', row?.options.id === 'skill-panel', row?.options.id);
+check(
+  'nav 行 order = 5，严格夹在「插件」(0) 与「自动化任务」(10) 之间',
+  row?.options.order === 5 && row.options.order > 0 && row.options.order < 10,
+  String(row?.options.order),
+);
+check('nav 行 label = 技能（侧栏按钮文字由外壳从这里取）', row?.options.label === '技能', row?.options.label);
+check(
+  '主区整页注册进 main keyed 座位，key 与 nav 行 id 一致（否则点击抛错）',
+  page?.options.key === row?.options.id,
+  page?.options.key,
+);
+check('nav 行组件是函数（图标只有外壳给的 size/active）', typeof row?.component === 'function');
+check('主区组件是函数', typeof page?.component === 'function');
+
+// declaration-aware: a shell that never declares the seat must not break apply
+const undeclared = makeCtx(false);
+let undeclaredThrew = false;
+try {
+  exports_.apply(undeclared.ctx);
+} catch {
+  undeclaredThrew = true;
+}
+check(
+  '座位未声明时不注册也不抛错（declaration-aware，走 slots.inject 闸门）',
+  undeclaredThrew === false && undeclared.registrations.length === 0,
+  `${undeclared.registrations.length} 个注册`,
+);
 
 // ---- fixture --------------------------------------------------------------
 
@@ -218,33 +263,49 @@ const fixture = {
   environment: { DSH_HOME: 'C:\\Users\\x\\.dsh', DSH_BUNDLED_SKILL_DIR: null },
 };
 
+/** The framework's `main`-seat standard prop shape we read cwd out of. */
+const useSessionsStub = (selector) =>
+  selector({ current: 's1', byId: { s1: { cwd: fixture.cwd } } });
+
+/** Apply the bundle to a fresh fake ctx and hand back the page component. */
+async function pageFor(presetBoxes, props = { useSessions: useSessionsStub }) {
+  const fakeReact = makeReact();
+  const exportsX = await loadBundle(fakeReact);
+  Object.assign(fakeReact.boxes, presetBoxes);
+  const runX = makeCtx(true);
+  exportsX.apply(runX.ctx);
+  const pageX = runX.registrations.find((r) => r.options.name === 'main');
+  return { tree: expand(pageX.component(props)), text: null, component: pageX.component };
+}
+
+async function renderText(presetBoxes, props) {
+  const { tree } = await pageFor(presetBoxes, props);
+  return { tree, text: collectText(tree).join('\n') };
+}
+
 // ---- 3a. render a healthy + dropped scan ---------------------------------
 
-const reactA = makeReact();
-const exportsA = await loadBundle(reactA);
-Object.assign(reactA.boxes, { 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null });
-let descriptorA = null;
-exportsA.apply({
-  effect(cb) {
-    cb();
-    return () => {};
-  },
-  betterSidebar: { registerTab(d) { descriptorA = d; return () => {}; } },
-});
-
-const treeA = expand(descriptorA.component({ scope: { sessionId: 's1', cwd: fixture.cwd }, visible: false }));
-const textA = collectText(treeA).join('\n');
+const a = await renderText({ 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null });
+const textA = a.text;
 
 check('渲染成功且含汇总行', textA.includes('共 2 条') && textA.includes('模型实际可见 1'), textA.split('\n').find((l) => l.includes('共 2 条')));
 check('渲染出正常技能名与描述', textA.includes('canvas-design') && textA.includes('生成 PNG/PDF 视觉稿'));
 check('渲染出坏 frontmatter 的红字原因', textA.includes('缺 frontmatter') && textA.includes('模型看不到它'));
 check('渲染出「已停用」标记', textA.includes('已停用'));
 check('渲染出当前会话 cwd 与项目根', textA.includes('当前会话 cwd') && textA.includes('项目根'));
+check('cwd 取自 useSessions 快照的 current → byId.cwd（新座位无 scope prop）', textA.includes(fixture.cwd));
 check('渲染出根清单（含未挂载根与只读标记）', textA.includes('user-dsh #400') && textA.includes('未挂载'));
 check('渲染出「唯一会写盘的动作」说明', textA.includes('只改入口文件名'));
 check('没有 pending 时不显示确认条', !textA.includes('确认改名'));
-check('渲染出可交互按钮（刷新/筛选/看正文）', countType(treeA, 'button').n >= 5, String(countType(treeA, 'button').n));
-check('渲染出开关（按钮式 toggle）', textA.includes('canvas-design'));
+check('渲染出可交互按钮（刷新/筛选/看正文）', countType(a.tree, 'button').n >= 5, String(countType(a.tree, 'button').n));
+
+// ---- 3a'. the no-useSessions fallback (no session binding on this seat) ----
+
+const aFallback = await renderText({ 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null }, {});
+check(
+  '外壳不给 useSessions 时降级为「只列用户级」而不是崩溃',
+  aFallback.text.includes('未知（面板无法算项目级根，只列用户级）') && aFallback.text.includes('共 2 条'),
+);
 
 // ---- 3b. render the undeclared-index hit ----------------------------------
 
@@ -257,60 +318,36 @@ const hitsFixture = {
   truncated: false,
   hits: [{ kind: 'table', header: ['名字', '能力'], cells: ['office-docx', 'Word 处理'], line: 42 }],
 };
-const reactB = makeReact();
-const exportsB = await loadBundle(reactB);
-Object.assign(reactB.boxes, { 0: fixture, 1: null, 2: false, 3: 'all', 4: 'office', 5: null, 6: hitsFixture });
-let descriptorB = null;
-exportsB.apply({
-  effect(cb) {
-    cb();
-    return () => {};
-  },
-  betterSidebar: { registerTab(d) { descriptorB = d; return () => {}; } },
-});
-const textB = collectText(expand(descriptorB.component({ scope: { sessionId: 's1', cwd: fixture.cwd }, visible: false }))).join('\n');
+const b = await renderText({ 0: fixture, 1: null, 2: false, 3: 'all', 4: 'office', 5: null, 6: hitsFixture });
+const textB = b.text;
 check('第二跳命中时渲染信息卡', textB.includes('office-docx') && textB.includes('Word 处理'));
 check('信息卡标注只读不安装', textB.includes('只读 · 不安装'));
 check('信息卡带复制按钮', textB.includes('复制'));
 
 // ---- 3c. render the toggle confirmation -----------------------------------
 
-const reactC = makeReact();
-const exportsC = await loadBundle(reactC);
-Object.assign(reactC.boxes, { 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: fixture.skills[0], 6: null });
-let descriptorC = null;
-exportsC.apply({
-  effect(cb) {
-    cb();
-    return () => {};
-  },
-  betterSidebar: { registerTab(d) { descriptorC = d; return () => {}; } },
-});
-const textC = collectText(expand(descriptorC.component({ scope: { sessionId: 's1', cwd: fixture.cwd }, visible: false }))).join('\n');
+const c = await renderText({ 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: fixture.skills[0], 6: null });
+const textC = c.text;
 check('pending 时显示确认条 + from→to', textC.includes('确认改名') && textC.includes('SKILL.md.disabled'));
 check('确认条写明这是唯一写盘动作', textC.includes('唯一会写盘的动作'));
 
 // ---- 3d. render the error branch ------------------------------------------
 
-const reactD = makeReact();
-const exportsD = await loadBundle(reactD);
-Object.assign(reactD.boxes, { 0: null, 1: 'HTTP 500', 2: false, 3: 'all', 4: '', 5: null, 6: null });
-let descriptorD = null;
-exportsD.apply({
-  effect(cb) {
-    cb();
-    return () => {};
-  },
-  betterSidebar: { registerTab(d) { descriptorD = d; return () => {}; } },
-});
-const textD = collectText(expand(descriptorD.component({ scope: { sessionId: 's1', cwd: fixture.cwd }, visible: false }))).join('\n');
-check('错误状态显式显示（不装死）', textD.includes('✗') && textD.includes('HTTP 500'));
+const d = await renderText({ 0: null, 1: 'HTTP 500', 2: false, 3: 'all', 4: '', 5: null, 6: null });
+check('错误状态显式显示（不装死）', d.text.includes('✗') && d.text.includes('HTTP 500'));
 
-// ---- verify the apply() in the very first load is the same shape ----------
+// ---- verify every reload declares the same public surface -----------------
 
+const runAgain = makeCtx(true);
+const exportsAgain = await loadBundle(makeReact());
+exportsAgain.apply(runAgain.ctx);
+const rowAgain = runAgain.registrations.find((r) => r.options.name === 'sidebar.panellist');
+const pageAgain = runAgain.registrations.find((r) => r.options.name === 'main');
 check(
-  '三次重新加载的 descriptor 一致（无隐藏状态）',
-  descriptor?.id === descriptorA?.id && descriptorA?.id === descriptorB?.id && descriptorB?.id === descriptorC?.id,
+  '两次加载的注册一致（无隐藏状态）',
+  rowAgain?.options.id === row?.options.id &&
+    rowAgain?.options.order === row?.options.order &&
+    pageAgain?.options.key === page?.options.key,
 );
 
 mkdirSync(reportDir, { recursive: true });
@@ -318,7 +355,10 @@ writeFileSync(
   join(reportDir, 'client-report.json'),
   JSON.stringify(
     {
-      descriptor: { id: descriptor?.id, title: descriptor?.title, single: descriptor?.single, description: descriptor?.description },
+      mount: {
+        row: row ? { slot: row.options.name, id: row.options.id, order: row.options.order, label: row.options.label } : null,
+        page: page ? { slot: page.options.name, key: page.options.key } : null,
+      },
       exportsInject: exports_.inject,
       checks,
       renderedTextSample: textA.split('\n').slice(0, 30),
@@ -329,6 +369,6 @@ writeFileSync(
 );
 console.log(`\n报告已写：${join(reportDir, 'client-report.json')}`);
 
-const failed = checks.filter((c) => !c.ok);
+const failed = checks.filter((c2) => !c2.ok);
 console.log(`\n=== 客户端自测：${checks.length - failed.length}/${checks.length} 通过 ===`);
 process.exit(failed.length === 0 ? 0 : 1);

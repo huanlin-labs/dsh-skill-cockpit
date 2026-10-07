@@ -10,10 +10,16 @@
 # single entry-file rename (SKILL.md -> SKILL.md.disabled) and it is refused
 # for project-level roots.
 #
-# The client half (lib/client.js, declared via dsh.client) registers the
-# 「技能」 page as a tab type of DSH's native right Sidebar through the
-# third-party dsh-better-sidebar service ctx.betterSidebar — so this plugin
-# declares NO @deepseek-ai/dsh* peer dependency at all.
+# The client half (lib/client.js, declared via dsh.client) registers TWO
+# official slot seats through the framework `slots` service — the same
+# extension point the shipped Plugins and Schedule pages use:
+#   1. an icon row in the sidebar shell's root-scoped `sidebar.panellist` LIST
+#      (the application-level nav row) with order 5, i.e. strictly between the
+#      shipped Plugins row (0) and the shipped Schedule row (10);
+#   2. the whole page in the layout's root-scoped `main` KEYED slot under the
+#      same id.
+# It therefore declares NO @deepseek-ai/dsh* peer dependency at all (it never
+# imports one; `slots` arrives as a runtime service via ctx.inject).
 #
 # Mount into a profile either by adding "dsh-skill-panel" to the profile's
 # `dsh.profile.bundles` list, or by inserting the same row through a user
