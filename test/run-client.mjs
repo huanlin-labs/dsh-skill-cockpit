@@ -296,7 +296,7 @@ check('渲染出当前会话的项目根', textA.includes('项目根（当前会
 check('cwd 取自 useSessions 快照的 current → byId.cwd（新座位无 scope prop）', textA.includes(fixture.cwd));
 check('渲染出根清单（含未挂载根与只读标记）', textA.includes('user-dsh #400') && textA.includes('未挂载'));
 check('渲染出「唯一会写盘的动作」说明', textA.includes('只改入口文件名'));
-check('没有 pending 时不显示确认条', !textA.includes('确认改名'));
+check('写明「开关即写盘」（一步切换的说明）', textA.includes('开关即写盘'));
 check('渲染出可交互按钮（刷新/筛选/看正文）', countType(a.tree, 'button').n >= 5, String(countType(a.tree, 'button').n));
 
 // ---- 3a'. the no-useSessions fallback (no session binding on this seat) ----
@@ -324,12 +324,20 @@ check('第二跳命中时渲染信息卡', textB.includes('office-docx') && text
 check('信息卡标注只读不安装', textB.includes('只读 · 不安装'));
 check('信息卡带复制按钮', textB.includes('复制'));
 
-// ---- 3c. render the toggle confirmation -----------------------------------
+// ---- 3c. the switch is a real, clickable control (one-click flow) ----------
+//
+// 0.2.0 rendered a confirmation bar; the owner asked for one click (2026-10-08),
+// so the switch itself must be live and carry a stable hook for the click test.
 
-const c = await renderText({ 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: fixture.skills[0], 6: null });
-const textC = c.text;
-check('pending 时显示确认条 + from→to', textC.includes('确认改名') && textC.includes('SKILL.md.disabled'));
-check('确认条写明这是唯一写盘动作', textC.includes('唯一会写盘的动作'));
+const c = await renderText({ 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null });
+check('渲染出可点的开关，带稳定 data 钩子', firstByProp(c.tree, 'data-dsh-skill-toggle') !== null);
+check(
+  '可写根上的启用技能：开关不是禁用态',
+  firstByProp(c.tree, 'data-dsh-skill-toggle')?.props?.disabled === false,
+  String(firstByProp(c.tree, 'data-dsh-skill-toggle')?.props?.disabled),
+);
+check('一遍过：不再出现确认条', !c.text.includes('确认改名'));
+check('说明写明这是唯一写盘动作', c.text.includes('唯一会写盘的动作'));
 
 // ---- 3d. render the error branch ------------------------------------------
 
@@ -344,25 +352,28 @@ check('错误状态显式显示（不装死）', d.text.includes('✗') && d.tex
 // host answered 400 ("该技能当前不是 .disabled，无需恢复") and every click looked
 // inert. Asserting rendered text can never catch that — only the outgoing body.
 
-function firstButton(node, label) {
+/** Find the first element carrying `prop` (and, when given, that exact value). */
+function firstByProp(node, prop, value) {
   if (node === null || typeof node !== 'object') return null;
   if (Array.isArray(node)) {
     for (const child of node) {
-      const found = firstButton(child, label);
+      const found = firstByProp(child, prop, value);
       if (found) return found;
     }
     return null;
   }
-  if (node.type === 'button' && collectText(node).join('').includes(label)) return node;
+  if (node.props && node.props[prop] !== undefined && (value === undefined || node.props[prop] === value)) {
+    return node;
+  }
   for (const child of node.children ?? []) {
-    const found = firstButton(child, label);
+    const found = firstByProp(child, prop, value);
     if (found) return found;
   }
   return null;
 }
 
-/** Render with `skill` pending, click 确认, and capture the outgoing /toggle request. */
-async function captureToggle(skill) {
+/** Render the panel and click the row's switch, capturing the outgoing /toggle request. */
+async function captureToggle(skill, report = fixture) {
   const calls = [];
   const realFetch = globalThis.fetch;
   globalThis.fetch = async (url, init) => {
@@ -372,14 +383,15 @@ async function captureToggle(skill) {
   try {
     const fakeReact = makeReact();
     const exportsX = await loadBundle(fakeReact);
-    Object.assign(fakeReact.boxes, { 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: skill, 6: null });
+    Object.assign(fakeReact.boxes, { 0: report, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null });
     const runX = makeCtx(true);
     exportsX.apply(runX.ctx);
     const pageX = runX.registrations.find((r) => r.options.name === 'main');
     const tree = expand(pageX.component({ useSessions: useSessionsStub }));
-    const confirm = firstButton(tree, '确认');
-    if (!confirm) return { confirmMissing: true };
-    await confirm.props.onClick();
+    // Click THAT skill's switch, not merely the first one on the page.
+    const sw = firstByProp(tree, 'data-dsh-skill-toggle', skill.filePath);
+    if (!sw) return { switchMissing: true };
+    await sw.props.onClick();
     const seen = calls.find((c) => c.url.endsWith('/toggle'));
     return { method: seen?.init?.method, body: seen ? JSON.parse(seen.init.body) : null };
   } finally {
@@ -389,8 +401,8 @@ async function captureToggle(skill) {
 
 const onCase = await captureToggle(fixture.skills[0]); // canvas-design · enabled: true
 check(
-  '确认时对 /toggle 发 POST（写动作走真实 HTTP，不是改本地状态）',
-  onCase.method === 'POST' && !onCase.confirmMissing,
+  '点开关即对 /toggle 发 POST（写动作走真实 HTTP，不是改本地状态）',
+  onCase.method === 'POST' && !onCase.switchMissing,
   String(onCase.method),
 );
 check(
@@ -404,11 +416,14 @@ check(
   String(onCase.body?.filePath),
 );
 
-const offCase = await captureToggle({
+// A clean, writable skill that is currently OFF — the "restore" direction.
+const offSkill = {
   ...fixture.skills[0],
   enabled: false,
+  enabledName: 'SKILL.md.disabled',
   filePath: 'C:\\Users\\x\\.dsh\\skills\\canvas-design\\SKILL.md.disabled',
-});
+};
+const offCase = await captureToggle(offSkill, { ...fixture, skills: [offSkill] });
 check(
   '⚡ 开关为「关」时载荷必须是 disable:false（恢复方向同样不能写反）',
   offCase.body?.disable === false,
