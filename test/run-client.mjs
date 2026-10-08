@@ -292,7 +292,7 @@ check('渲染成功且含汇总行', textA.includes('共 2 条') && textA.includ
 check('渲染出正常技能名与描述', textA.includes('canvas-design') && textA.includes('生成 PNG/PDF 视觉稿'));
 check('渲染出坏 frontmatter 的红字原因', textA.includes('缺 frontmatter') && textA.includes('模型看不到它'));
 check('渲染出「已停用」标记', textA.includes('已停用'));
-check('渲染出当前会话 cwd 与项目根', textA.includes('当前会话 cwd') && textA.includes('项目根'));
+check('渲染出当前会话的项目根', textA.includes('项目根（当前会话）') && textA.includes('项目根'));
 check('cwd 取自 useSessions 快照的 current → byId.cwd（新座位无 scope prop）', textA.includes(fixture.cwd));
 check('渲染出根清单（含未挂载根与只读标记）', textA.includes('user-dsh #400') && textA.includes('未挂载'));
 check('渲染出「唯一会写盘的动作」说明', textA.includes('只改入口文件名'));
@@ -304,7 +304,7 @@ check('渲染出可交互按钮（刷新/筛选/看正文）', countType(a.tree,
 const aFallback = await renderText({ 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null }, {});
 check(
   '外壳不给 useSessions 时降级为「只列用户级」而不是崩溃',
-  aFallback.text.includes('未知（面板无法算项目级根，只列用户级）') && aFallback.text.includes('共 2 条'),
+  aFallback.text.includes('项目根：无 —— 本页是全局页，不绑定会话') && aFallback.text.includes('共 2 条'),
 );
 
 // ---- 3b. render the undeclared-index hit ----------------------------------
@@ -335,6 +335,85 @@ check('确认条写明这是唯一写盘动作', textC.includes('唯一会写盘
 
 const d = await renderText({ 0: null, 1: 'HTTP 500', 2: false, 3: 'all', 4: '', 5: null, 6: null });
 check('错误状态显式显示（不装死）', d.text.includes('✗') && d.text.includes('HTTP 500'));
+
+// ---- 3e. the WIRE PAYLOAD of the only write action ------------------------
+//
+// Regression guard for the 2026-10-08 bug: the switch shows the CURRENT state,
+// so the request must carry the OPPOSITE intent. The shipped build sent
+// `disable: !enabled`, i.e. it asked the host to ENABLE an enabled skill; the
+// host answered 400 ("该技能当前不是 .disabled，无需恢复") and every click looked
+// inert. Asserting rendered text can never catch that — only the outgoing body.
+
+function firstButton(node, label) {
+  if (node === null || typeof node !== 'object') return null;
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = firstButton(child, label);
+      if (found) return found;
+    }
+    return null;
+  }
+  if (node.type === 'button' && collectText(node).join('').includes(label)) return node;
+  for (const child of node.children ?? []) {
+    const found = firstButton(child, label);
+    if (found) return found;
+  }
+  return null;
+}
+
+/** Render with `skill` pending, click 确认, and capture the outgoing /toggle request. */
+async function captureToggle(skill) {
+  const calls = [];
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), init });
+    return { ok: true, status: 200, json: async () => ({ applied: true, ok: true }) };
+  };
+  try {
+    const fakeReact = makeReact();
+    const exportsX = await loadBundle(fakeReact);
+    Object.assign(fakeReact.boxes, { 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: skill, 6: null });
+    const runX = makeCtx(true);
+    exportsX.apply(runX.ctx);
+    const pageX = runX.registrations.find((r) => r.options.name === 'main');
+    const tree = expand(pageX.component({ useSessions: useSessionsStub }));
+    const confirm = firstButton(tree, '确认');
+    if (!confirm) return { confirmMissing: true };
+    await confirm.props.onClick();
+    const seen = calls.find((c) => c.url.endsWith('/toggle'));
+    return { method: seen?.init?.method, body: seen ? JSON.parse(seen.init.body) : null };
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+}
+
+const onCase = await captureToggle(fixture.skills[0]); // canvas-design · enabled: true
+check(
+  '确认时对 /toggle 发 POST（写动作走真实 HTTP，不是改本地状态）',
+  onCase.method === 'POST' && !onCase.confirmMissing,
+  String(onCase.method),
+);
+check(
+  '⚡ 开关为「开」时载荷必须是 disable:true（曾写反 ⇒ 主机 400，点了像没反应）',
+  onCase.body?.disable === true,
+  JSON.stringify(onCase.body),
+);
+check(
+  '载荷带上被点那条技能的真实路径',
+  onCase.body?.filePath === fixture.skills[0].filePath,
+  String(onCase.body?.filePath),
+);
+
+const offCase = await captureToggle({
+  ...fixture.skills[0],
+  enabled: false,
+  filePath: 'C:\\Users\\x\\.dsh\\skills\\canvas-design\\SKILL.md.disabled',
+});
+check(
+  '⚡ 开关为「关」时载荷必须是 disable:false（恢复方向同样不能写反）',
+  offCase.body?.disable === false,
+  JSON.stringify(offCase.body),
+);
 
 // ---- verify every reload declares the same public surface -----------------
 
