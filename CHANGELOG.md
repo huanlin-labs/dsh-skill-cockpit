@@ -18,7 +18,7 @@ checklist are outstanding.
 ## [0.3.0] — 2026-10-20
 
 The version that makes the panel answer **"why isn't this skill working?"** instead of only listing
-skills. Two new diagnostics, both built on measurements from this machine.
+skills. Two new endpoints, both verified against this machine.
 
 ### Added
 
@@ -47,7 +47,8 @@ skills. Two new diagnostics, both built on measurements from this machine.
 
 ### Tests
 
-- 6 suites / **244 assertions** (was 4 / 124). New: `run-usage.mjs` (52) and `run-checks.mjs` (48).
+- 6 suites / **262 assertions** (was 4 / 124): data layer 23 · toggle 42 · routes 42 (was 22) ·
+  client 55 (was 37) · **usage 52** · **checks 48**.
 
 ### Note — why some skills cannot be disabled here
 

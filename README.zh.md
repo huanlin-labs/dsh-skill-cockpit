@@ -68,7 +68,25 @@ DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加�
 | GET | `/__dsh-skill-panel/skills?cwd=…` | 全量扫描报告（`cwd` 决定项目级根） |
 | GET | `/__dsh-skill-panel/body?path=…` | 读一个入口文件正文（只读，带体积上限） |
 | GET | `/__dsh-skill-panel/undeclared?q=…` | 搜未安装技能索引（只读） |
+| GET | `/__dsh-skill-panel/usage` | 技能调用次数：`{ ok, skills:[{name,count,lastAt}], scanned, skipped, sessions, updatedAt }` |
+| GET | `/__dsh-skill-panel/checks?cwd=…` | 四类「能加载但白占坑」诊断：`{ ok, checks:[{kind,skill,detail}], summary, thresholds, note }` |
 | POST | `/__dsh-skill-panel/toggle` | `{ filePath, disable, plan? }` → 改名（唯一写动作） |
+
+`/usage` 只写一个文件：`<dshHome>/dsh-skill-cockpit/usage.json`，内容只有**技能名 / 调用次数 / 时间戳**
+（不存任何对话内容）；扫描是增量的 —— 会话日志 `(size, mtime)` 没变就跳过，本机 104 个会话的第二次调用 21ms。
+`/checks` 是纯计算（不读磁盘），阈值默认「描述 <20 字」「文件 <300 字节（按字节估计，含 frontmatter）」。
+
+### 为什么有些技能禁不了
+
+技能到会话有两条路，只有一条落在文件上：
+
+- **文件型**（`user-dsh` / `user-agents` / `custom` / 项目根 / 内置目录）：入口是真 `SKILL.md` 或 `x.md`，
+  面板改入口文件名即可停用。
+- **非文件型（provider 提供）**：宿主的契约是 `ctx.skills.registerProvider(() => provider)`，**只做加法** ——
+  provider 贡献自己的 `list()`，**没有任何钩子能包装 / 过滤 / 排除别人输出的技能**。面板对它无能为力。
+
+这不是漏做，是宿主 API 的形状；所以面板如实标注：这类行在开关位置显示
+「本面板无法禁用（属 … provider）」，**不画一个点了也不会有反应的假开关**。
 
 `plan: true` 只算不动 → 面板用它做"确认改名"预告，自测也用它验 dry-run。
 
@@ -83,14 +101,16 @@ DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加�
 node test/run-all.mjs [报告目录]
 ```
 
-四个套件（全部不需要 GUI / 不需要 dsh）：
+六个套件（全部不需要 GUI / 不需要 dsh）：
 
 | 套件 | 覆盖 |
 |---|---|
 | `run-data-layer.mjs` | 六类根 / `dropped:*` 全可达（合成 fixture）/ `root-missing` / **独立目录遍历比对（不多报、不漏报）** / 字节数与磁盘一致 |
 | `run-toggle.mjs` | 在**真实** `~/.dsh/skills` 上对 1 个新建探针做 改名→停用→改回 闭环：sha256 一致、根项数不变、面板仍显示"已停用"、清理后零残留；另含目录/非入口/根外/项目级四类拒绝路径 |
-| `run-routes.mjs` | 假 ctx 跑真 `apply()`：5 条路由注册、200/400/403/405、ping |
-| `run-client.mjs` | 假 `__ModuleLoader__` + React 桩：bundle 求值、**挂载对（`sidebar.panellist` 行 id/order/label + `main` keyed 页 key 一致）**、`order=5` 夹位断言、**座位未声明时不注册也不抛错**、健康/坏 frontmatter/第二跳/确认条/错误态/**无 `useSessions` 降级**七种渲染 |
+| `run-routes.mjs` | 假 ctx 跑真 `apply()`：**7 条路由**注册、200/400/403/405、ping、`/usage` 落盘到**配置的**路径（自测绝不写真实 `~/.dsh`）且第二次增量跳过、`/checks` 真实命中 |
+| `run-client.mjs` | 假 `__ModuleLoader__` + React 桩：bundle 求值、**挂载对（`sidebar.panellist` 行 id/order/label + `main` keyed 页 key 一致）**、`order=5` 夹位断言、**座位未声明时不注册也不抛错**、健康/坏 frontmatter/第二跳/错误态/**无 `useSessions` 降级**、**三个视图（列表/用量/问题）**、用量空态那句、非文件型的「禁不了」标注、主题令牌无死令牌 |
+| `run-usage.mjs` | 真 zstd **多帧**文件（每帧独立压缩再拼接）：多帧解码 / 单帧 / 纯文本回退 / 垃圾字节 / `seq` 去重 / 深层嵌套事件筛选 / 增量跳过 / 文件变大不双计 / 落盘结构 / **隐私（落盘不含对话原文）** |
+| `run-checks.mjs` | 四类诊断各自正反例：`shadowed` / `short-description`（空、19 字、正好 20 字）/ `dir-name-mismatch`（仅 `dir-bundle`）/ `empty-body`（阈值边界）/ 汇总 / 阈值覆盖 / 畸形输入不抛 / 纯函数不改入参 |
 
 ## 边界（有意不做）
 
