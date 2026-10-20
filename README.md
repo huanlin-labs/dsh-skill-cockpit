@@ -1,10 +1,10 @@
 # dsh-skill-cockpit
 
-> **Status: v0.6.7 — works end-to-end on a real desktop install; not on npm yet.**
+> **Status: v0.6.7 — works end-to-end on a real desktop install.**
 > 6/6 self-test suites · **281 assertions**, all green, and CI runs the same suites on every push.
-> The npm name is settled as `dsh-skill-cockpit` (the bare `dsh-skill-panel` is taken by another
-> author); first publish is pending. Screenshots are being retaken for 0.6.7 — see
-> [Screenshots](#screenshots).
+> Published as `dsh-skill-cockpit`: **npm currently carries 0.2.3**, and this 0.6.7 is the next
+> release. (The bare name `dsh-skill-panel` belongs to a different author.) Screenshots are being
+> retaken for 0.6.7 — see [Screenshots](#screenshots).
 
 A **skill cockpit for [DSH](https://github.com/deepseek-ai)** (DeepSeek Harness): one page in the
 app-level navigation that shows every skill the machine actually exposes, says **why** a skill is
@@ -131,14 +131,14 @@ Being retaken against v0.6.7 and will be committed to `docs/screenshots/`:
 This README ships without images on purpose: no placeholder logos and no screenshots of an older
 UI. When they land they go in the table above, first one right under the title.
 
-## Install (from source, for now)
-
-Not on npm yet. Until the first release, clone this repository and mount the working tree into a
-profile with a local link:
+## Install
 
 ```bash
-git clone https://github.com/zhaorui-wu/dsh-skill-cockpit.git
+npm install dsh-skill-cockpit
 ```
+
+The published version is **0.2.3** today; 0.6.7 is pending release. To run the current source
+instead, clone and link the working tree:
 
 ```jsonc
 // ~/.dsh/profiles/<profile>/package.json
