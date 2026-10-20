@@ -21,7 +21,7 @@
  * silently renders nothing.
  */
 
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const reportDir = resolve(process.argv[2] ?? join(import.meta.dirname, 'out'));
@@ -436,6 +436,12 @@ check(
 // selected by presetting its slot: 7 = view, 8 = usage, 10 = checks.
 
 const clientSource = readFileSync(join(import.meta.dirname, '..', 'lib', 'client.js'), 'utf8');
+/** Code only: comments may legitimately NAME the dead 0.2.x tokens. */
+const clientCode = clientSource
+  .replace(/\/\*[\s\S]*?\*\//g, '')
+  .split('\n')
+  .filter((line) => !line.trim().startsWith('//'))
+  .join('\n');
 const pkgVersion = JSON.parse(
   readFileSync(join(import.meta.dirname, '..', 'package.json'), 'utf8'),
 ).version;
@@ -562,19 +568,19 @@ check(
 // ---- 3h. theme discipline + version --------------------------------------
 
 check(
-  '⚡ 源码里不再出现 --dsw-color-（宿主里那 9 个令牌根本不存在）',
-  !clientSource.includes('--dsw-color-'),
+  '⚡ 代码里不再出现 --dsw-color-（宿主里那 9 个令牌根本不存在）',
+  !clientCode.includes('--dsw-color-'),
 );
 check(
   '每个 var(--dsw-*) 都带 fallback（正则扫 var(...) 无第二参数即失败）',
-  !/var\(\s*--[a-zA-Z0-9-]+\s*\)/.test(clientSource),
-  (clientSource.match(/var\(\s*--[a-zA-Z0-9-]+\s*\)/g) ?? []).join(' '),
+  !/var\(\s*--[a-zA-Z0-9-]+\s*\)/.test(clientCode),
+  (clientCode.match(/var\(\s*--[a-zA-Z0-9-]+\s*\)/g) ?? []).join(' '),
 );
 check(
   '主题接的是宿主真实的 --dsw-alias-*（边框用 -l2，不用只有 4% 黑的 -l1）',
-  clientSource.includes('--dsw-alias-label-primary') &&
-    clientSource.includes('--dsw-alias-border-l2') &&
-    !clientSource.includes('--dsw-alias-border-l1'),
+  clientCode.includes('--dsw-alias-label-primary') &&
+    clientCode.includes('--dsw-alias-border-l2') &&
+    !clientCode.includes('--dsw-alias-border-l1'),
 );
 check(
   '页脚显示面板版本，且与 package.json 一致',
