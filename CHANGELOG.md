@@ -200,6 +200,32 @@ disabled skill looks.
 - A group whose members are all disabled renders at `opacity:.55` with a muted header
   (`[data-off="1"]`), so an off group is visible at a glance instead of needing to read
   the count line.
+## [0.6.8] — 2026-10-20
+
+### Added — real i18n, wired to the host's own locale service
+
+Until now `locale/zh.json` and `locale/en.json` each held a single `meta` key that no code read,
+while every string in the UI was hardcoded Chinese. The panel now speaks both languages through
+the same contract the top-downloaded skill plugins use:
+
+- `apply(ctx)` resolves the host service as `ctx.get('locale')` — **not** via
+  `dsh.client.inject`, deliberately: a missing service then degrades to Chinese instead of
+  failing activation.
+- Dictionaries register through `localeService.register(LOCALE_NS, MESSAGES)` inside
+  `ctx.effect(...)` (so they unregister with the plugin), and the translator comes from
+  `localeService.bind(LOCALE_NS)`.
+- `t(key, vars)` resolves 宿主 current language → Chinese → the key itself, and interpolates
+  `{name}`-style placeholders itself (the host call is `t(key)`, no var injection).
+- First slice converted: the nav row label and the four tab labels. Remaining UI strings are
+  being moved over slice by slice; the dictionary is the single place to edit copy from now on.
+
+### Added — five i18n assertions (286 total)
+
+1. the dictionary block parses into `zh` / `en`; 2. both key sets are identical (no missing
+translation); 3. **no CJK left in any `en` value** (exact per-entry check, so a half-translated
+string fails the suite); 4. every `t('…')` key used in code exists in the dictionary (typos fail);
+5. the wiring really is `ctx.get('locale')` + `register` + `bind` (a regression to
+`dsh.client.inject` fails).
 ## [Unreleased]
 
 ### Docs
@@ -238,6 +264,32 @@ Every click therefore produced `want = []` and answered "这一组已经全部�
 
 - Regression assertion (client suite, 281 assertions total) pinning the filter to
   `Boolean(s.enabled) === Boolean(disable)` and rejecting the old inverted form.
+## [0.6.8] — 2026-10-20
+
+### Added — real i18n, wired to the host's own locale service
+
+Until now `locale/zh.json` and `locale/en.json` each held a single `meta` key that no code read,
+while every string in the UI was hardcoded Chinese. The panel now speaks both languages through
+the same contract the top-downloaded skill plugins use:
+
+- `apply(ctx)` resolves the host service as `ctx.get('locale')` — **not** via
+  `dsh.client.inject`, deliberately: a missing service then degrades to Chinese instead of
+  failing activation.
+- Dictionaries register through `localeService.register(LOCALE_NS, MESSAGES)` inside
+  `ctx.effect(...)` (so they unregister with the plugin), and the translator comes from
+  `localeService.bind(LOCALE_NS)`.
+- `t(key, vars)` resolves 宿主 current language → Chinese → the key itself, and interpolates
+  `{name}`-style placeholders itself (the host call is `t(key)`, no var injection).
+- First slice converted: the nav row label and the four tab labels. Remaining UI strings are
+  being moved over slice by slice; the dictionary is the single place to edit copy from now on.
+
+### Added — five i18n assertions (286 total)
+
+1. the dictionary block parses into `zh` / `en`; 2. both key sets are identical (no missing
+translation); 3. **no CJK left in any `en` value** (exact per-entry check, so a half-translated
+string fails the suite); 4. every `t('…')` key used in code exists in the dictionary (typos fail);
+5. the wiring really is `ctx.get('locale')` + `register` + `bind` (a regression to
+`dsh.client.inject` fails).
 ## [Unreleased]
 
 Public repository opened to reserve the name **`dsh-skill-cockpit`**. The plugin is functional but

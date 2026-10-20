@@ -625,6 +625,49 @@ check(
   '整组开/停按当前状态筛目标（enabled === disable），不会永远空集',
   clientCode.includes('Boolean(s.enabled) === Boolean(disable)') &&
     !clientCode.includes('s.enabled === !disable'),
+);
+// ── i18n（0.6.8）：字典本身的完整性 + 用到的 key 必须存在 ──
+const messagesStart = clientCode.indexOf('const MESSAGES = {');
+const messagesText = (function sliceBalanced(text, from) {
+  let depth = 0;
+  for (let i = from; i < text.length; i += 1) {
+    if (text[i] === '{') depth += 1;
+    else if (text[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return text.slice(from, i + 1);
+    }
+  }
+  return '';
+})(clientCode, clientCode.indexOf('{', messagesStart));
+const MESSAGES = messagesStart >= 0 ? new Function(`return ${messagesText}`)() : null;
+
+check(
+  'i18n 字典可解析出 zh / en 两套',
+  Boolean(MESSAGES && MESSAGES.zh && MESSAGES.en),
+);
+const zhKeys = MESSAGES ? Object.keys(MESSAGES.zh).sort() : [];
+const enKeys = MESSAGES ? Object.keys(MESSAGES.en).sort() : [];
+check(
+  'zh / en key 集合完全一致（不漏译）',
+  zhKeys.length > 0 && zhKeys.join('|') === enKeys.join('|'),
+  `${zhKeys.length} keys`,
+);
+check(
+  'en 字典里没有残留中文（逐条校验，不做模糊匹配）',
+  Boolean(MESSAGES) && enKeys.every((k) => !/[\u3000-\u303f\u4e00-\u9fff\uff00-\uffef]/.test(MESSAGES.en[k])),
+);
+const usedKeys = [...clientCode.matchAll(/\bt\('([^']+)'/g)].map((m) => m[1]);
+check(
+  '代码里 t(...) 用到的每个 key 都在字典里（防手误）',
+  usedKeys.length > 0 && [...new Set(usedKeys)].every((k) => zhKeys.includes(k)),
+  `${new Set(usedKeys).size} 个 key 在用`,
+);
+check(
+  '接的是宿主 locale 服务，且用 ctx.get 方式（不给宿主加硬 inject 依赖）',
+  clientCode.includes('ctx.get(') &&
+    clientCode.includes("get('locale')") &&
+    clientCode.includes('localeService.register(LOCALE_NS, MESSAGES)') &&
+    clientCode.includes('localeService.bind(LOCALE_NS)'),
 );;
 
 
