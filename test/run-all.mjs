@@ -3,7 +3,7 @@
  *
  *   node test/run-all.mjs [reportDir]
  *
- * Exit code 0 only when all three suites pass. stdio is inherited on purpose
+ * Exit code 0 only when every suite passes. stdio is inherited on purpose
  * (no pipes), so this works even in a confined shell.
  */
 
@@ -19,6 +19,9 @@ const suites = [
   ['开关闭环', join(import.meta.dirname, 'run-toggle.mjs')],
   ['宿主路由', join(import.meta.dirname, 'run-routes.mjs')],
   ['客户端', join(import.meta.dirname, 'run-client.mjs')],
+  // 0.3.0: usage reading (multi-frame zstd) and the "loads but earns nothing" checks.
+  ['用量', join(import.meta.dirname, 'run-usage.mjs')],
+  ['诊断', join(import.meta.dirname, 'run-checks.mjs')],
 ];
 
 const results = [];

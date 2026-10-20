@@ -2,7 +2,7 @@
 
 > **Status: early / work in progress.** This repository is being published ahead of its first
 > release to reserve the name. The plugin already works end-to-end on the author's machine
-> (4/4 self-test suites · 124 assertions) but the public docs, screenshots, and packaging are
+> (6/6 self-test suites · 244 assertions) but the public docs, screenshots, and packaging are
 > still being finished. Expect the surface below to change.
 
 A **skill cockpit for [DSH](https://github.com/deepseek-ai)** (DeepSeek Harness): one page in the
@@ -24,9 +24,24 @@ missing, and lets you toggle a single skill without editing anything but its ent
   drop a skill silently. The cockpit reports the concrete reason (`dropped:no-frontmatter`,
   `dropped:unclosed`, `dropped:bad-yaml`, `dropped:missing-fields`, `dropped:bad-name`), plus a
   missing root, a shadowed entry, or an explicit error — instead of showing nothing.
+- **It also answers "is anything using this skill?"** The session logs record every skill
+  invocation. The cockpit reads them and counts — which is how it can say, out loud, that on this
+  machine **104 sessions went by with 0 skill invocations**: everything installed is dormant.
+  Counts live in `<dshHome>/dsh-skill-cockpit/usage.json` (skill names, counts, timestamps only —
+  never message text).
+- **"Loads, but earns nothing" checks.** Four kinds of technically-valid skill that a model will
+  still never pick: `shadowed` (a duplicate name loses to a higher-priority root),
+  `short-description` (too short to choose between), `dir-name-mismatch` (bundle folder contradicts
+  the frontmatter name), `empty-body` (a heuristic, measured in file bytes and labelled as such).
 - **Toggling = renaming the entry file only.** Enable/disable flips `SKILL.md` ⇄
   `SKILL.md.disabled`. There is no sidecar state file, so there is exactly one source of truth:
   the filename. **Project-level skill roots are always read-only.**
+- **Honest about what it cannot do.** DSH's skill provider contract is additive:
+  `ctx.skills.registerProvider(() => provider)` contributes entries, and there is **no hook to wrap
+  or exclude another provider's output**. So skills that live in the filesystem are disabled by
+  renaming (above), while skills supplied by another provider — bundled or third-party — cannot be
+  disabled by this panel at all. Those rows say so instead of showing a switch that silently does
+  nothing.
 - **No `@deepseek-ai/dsh*` peer dependency at all.** The host half declares `inject = []` and the
   client half declares only `slots`, so the plugin is not subject to DSH's compatibility-exemption
   gate and does not touch the credentials surface.

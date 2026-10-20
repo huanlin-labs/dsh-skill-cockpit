@@ -430,7 +430,158 @@ check(
   JSON.stringify(offCase.body),
 );
 
-// ---- verify every reload declares the same public surface -----------------
+// ---- 3f. 0.3.0 · the three views -----------------------------------------
+//
+// The mock React returns `[initial, noop]` for every useState, so a view is
+// selected by presetting its slot: 7 = view, 8 = usage, 10 = checks.
+
+const clientSource = readFileSync(join(import.meta.dirname, '..', 'lib', 'client.js'), 'utf8');
+const pkgVersion = JSON.parse(
+  readFileSync(join(import.meta.dirname, '..', 'package.json'), 'utf8'),
+).version;
+
+const listView = await renderText({ 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null });
+check(
+  '视图切换：列表 / 用量 / 问题 三个按钮都在，并带 data-dsh-view 钩子',
+  ['list', 'usage', 'checks'].every((key) => firstByProp(listView.tree, 'data-dsh-view', key) !== null),
+);
+
+const usageFixture = {
+  ok: true,
+  skills: [{ name: 'canvas-design', count: 3, lastAt: 1_700_000_000_000 }],
+  scanned: 2,
+  skipped: 5,
+  sessions: 12,
+  updatedAt: 1_700_000_100_000,
+  storePath: 'C:\\Users\\x\\.dsh\\dsh-skill-cockpit\\usage.json',
+  privacy: '只存技能名 / 调用次数 / 时间戳，不存任何对话内容',
+};
+const usageView = await renderText({ 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null, 7: 'usage', 8: usageFixture });
+check(
+  '用量视图：列出技能名、次数与最后调用时间',
+  usageView.text.includes('canvas-design') && usageView.text.includes('3 次') && usageView.text.includes('最后调用'),
+  usageView.text.split('\n').find((line) => line.includes('canvas-design')),
+);
+check(
+  '用量视图：顶部说明扫描口径（扫描 / 跳过 / 会话数）',
+  usageView.text.includes('扫描 2 个会话日志') && usageView.text.includes('跳过 5 个') && usageView.text.includes('12 个会话'),
+);
+check('用量视图：明说不存对话内容', usageView.text.includes('不存任何对话内容'));
+check('用量视图：不渲染列表的筛选框（视图互斥）', !usageView.text.includes('筛选已装技能'));
+
+const usageEmpty = { ...usageFixture, skills: [] };
+const emptyView = await renderText({ 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null, 7: 'usage', 8: usageEmpty });
+check(
+  '⚡ 用量为 0 时的空态逐字给出「装了 N 个技能，但最近 M 个会话一次都没被调用过」',
+  emptyView.text.includes('装了 1 个技能，但最近 12 个会话一次都没被调用过'),
+  emptyView.text.split('\n').find((line) => line.includes('一次都没被调用过')),
+);
+
+const checksFixture = {
+  ok: true,
+  checks: [
+    { kind: 'short-description', skill: 'broken-one', detail: '描述为空（实际长度 0 字，阈值 20 字）' },
+    { kind: 'empty-body', skill: 'tiny-skill', detail: '文件只有 120 字节，少于 300 字节阈值（按文件字节估计，含 frontmatter，不是精确正文长度）' },
+  ],
+  summary: {
+    total: 2,
+    shadowed: 0,
+    shortDescription: 1,
+    dirNameMismatch: 0,
+    emptyBody: 1,
+    byKind: { shadowed: 0, 'short-description': 1, 'dir-name-mismatch': 0, 'empty-body': 1 },
+    scanned: 2,
+  },
+  thresholds: { minDescriptionLength: 20, emptyBodyBytes: 300 },
+  note: '正文长度按文件字节估计（启发式，不是精确正文长度）',
+  scannedSkills: 2,
+};
+const checksView = await renderText({ 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null, 7: 'checks', 10: checksFixture });
+check(
+  '问题视图：四类中文标签都在，并带各自计数',
+  ['跨根重名被遮蔽', '描述为空或过短', '目录名≠技能名', '正文疑似为空'].every((label) => checksView.text.includes(label)),
+  checksView.text.split('\n').slice(0, 8).join(' | '),
+);
+check(
+  '问题视图：渲染真实命中（技能名 + detail）',
+  checksView.text.includes('broken-one') && checksView.text.includes('描述为空（实际长度 0 字'),
+);
+check(
+  '问题视图：原样显示「按文件字节估计」（启发式，不假装精确）',
+  checksView.text.includes('按文件字节估计'),
+);
+check(
+  '问题视图：固定说明为什么有些技能禁不了（registerProvider 只允许追加）',
+  checksView.text.includes('registerProvider') && checksView.text.includes('没有排除别人输出的钩子'),
+);
+
+const checksEmptyView = await renderText({
+  0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null, 7: 'checks',
+  10: { ...checksFixture, checks: [] },
+});
+check('问题视图：没有问题时显示「没有发现问题」', checksEmptyView.text.includes('没有发现问题'));
+
+// ---- 3g. a provider-supplied skill gets an honest label, not a dead switch --
+
+const providerSkill = {
+  name: 'mcp-tool-skill',
+  description: '由 MCP provider 提供的技能（没有入口文件）',
+  source: 'provider',
+  provider: 'mcp',
+  rank: 0,
+  form: 'provider',
+  enabled: true,
+  status: 'ok',
+  bytes: 0,
+  filePath: 'mcp://tool-skill',
+  writable: false,
+};
+const providerReport = {
+  ...fixture,
+  skills: [...fixture.skills, providerSkill],
+  summary: { ...fixture.summary, totalEntries: 3, enabled: 2, visibleToModel: 2 },
+};
+const providerView = await renderText({
+  0: providerReport, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null,
+});
+check(
+  '非文件型技能：开关位置显示「本面板无法禁用（属 X provider）」',
+  providerView.text.includes('本面板无法禁用（属 mcp provider）'),
+  providerView.text.split('\n').find((line) => line.includes('本面板无法禁用')),
+);
+check(
+  '非文件型技能：带 data-dsh-skill-nofile 钩子，且没有假开关',
+  firstByProp(providerView.tree, 'data-dsh-skill-nofile', 'mcp-tool-skill') !== null &&
+    firstByProp(providerView.tree, 'data-dsh-skill-toggle', 'mcp://tool-skill') === null,
+);
+check(
+  '文件型技能照旧有开关（不给真技能误标成「禁不了」）',
+  firstByProp(providerView.tree, 'data-dsh-skill-toggle', fixture.skills[0].filePath) !== null,
+);
+
+// ---- 3h. theme discipline + version --------------------------------------
+
+check(
+  '⚡ 源码里不再出现 --dsw-color-（宿主里那 9 个令牌根本不存在）',
+  !clientSource.includes('--dsw-color-'),
+);
+check(
+  '每个 var(--dsw-*) 都带 fallback（正则扫 var(...) 无第二参数即失败）',
+  !/var\(\s*--[a-zA-Z0-9-]+\s*\)/.test(clientSource),
+  (clientSource.match(/var\(\s*--[a-zA-Z0-9-]+\s*\)/g) ?? []).join(' '),
+);
+check(
+  '主题接的是宿主真实的 --dsw-alias-*（边框用 -l2，不用只有 4% 黑的 -l1）',
+  clientSource.includes('--dsw-alias-label-primary') &&
+    clientSource.includes('--dsw-alias-border-l2') &&
+    !clientSource.includes('--dsw-alias-border-l1'),
+);
+check(
+  '页脚显示面板版本，且与 package.json 一致',
+  listView.text.includes(`面板版本 v${pkgVersion}`),
+  pkgVersion,
+);
+
 
 const runAgain = makeCtx(true);
 const exportsAgain = await loadBundle(makeReact());

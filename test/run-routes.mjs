@@ -4,19 +4,25 @@
  *   node test/run-routes.mjs [reportDir]
  *
  * Proves the wiring without restarting anything:
- *   · apply() registers all five routes on the web server;
- *   · GET ping / skills / body / undeclared answer 200 with JSON;
+ *   · apply() registers all seven routes on the web server;
+ *   · GET ping / skills / body / undeclared / usage / checks answer 200 with JSON;
  *   · POST toggle performs the rename, GET + POST on the wrong method give 405;
  *   · a bad body gives 400; a non-local Origin is refused with 403;
- *   · no service is probed: `ctx.get('webServer')` is the only ctx access.
+ *   · no service is probed: `ctx.get('webServer')` is the only ctx access;
+ *   · the usage index is written to the CONFIGURED path (never the real home in
+ *     a test run) and the second call skips unchanged logs.
  */
 
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { zstdCompressSync } from 'node:zlib';
 import { apply, name, inject } from '../lib/index.js';
 
 const reportDir = resolve(process.argv[2] ?? join(import.meta.dirname, 'out'));
+const pkgVersion = JSON.parse(
+  readFileSync(join(import.meta.dirname, '..', 'package.json'), 'utf8'),
+).version;
 const checks = [];
 const log = [];
 function check(label, ok, detail) {
@@ -53,11 +59,48 @@ const ctx = {
   },
 };
 
-apply(ctx, {});
+// A throwaway DSH home: the /usage route writes an index, and a self-test must
+// never touch the real `~/.dsh`. It doubles as the custom skill root below.
+const BASE = '/__dsh-skill-panel';
+const probeRoot = mkdtempSync(join(tmpdir(), 'skill-panel-routes-'));
+const probeSkill = join(probeRoot, 'route-probe');
+mkdirSync(probeSkill, { recursive: true });
+writeFileSync(
+  join(probeSkill, 'SKILL.md'),
+  '---\nname: route-probe\ndescription: 路由自测探针\n---\n正文\n',
+  'utf8',
+);
+
+const probeHome = join(probeRoot, 'dsh-home');
+const probeStore = join(probeRoot, 'usage.json');
+
+// One fake session log (a real zstd frame) so /usage has something to read and
+// the incremental second call has something to skip.
+const probeSessionDir = join(probeHome, 'sessions', '--probe--', 's1');
+mkdirSync(probeSessionDir, { recursive: true });
+writeFileSync(
+  join(probeSessionDir, 'session.v2.jsonl.zstd'),
+  zstdCompressSync(
+    Buffer.from(
+      `${JSON.stringify({
+        seq: 1,
+        time: 1_700_000_000_000,
+        source: { kind: 'skill-invocation', name: 'route-probe' },
+      })}\n`,
+      'utf8',
+    ),
+  ),
+);
+
+apply(ctx, {
+  dshHome: probeHome,
+  usageStorePath: probeStore,
+  customSkillDirs: [probeRoot],
+});
 
 check('导出 name = dsh-skill-cockpit', name === 'dsh-skill-cockpit', name);
 check('inject 为空数组（不猜、不探服务）', Array.isArray(inject) && inject.length === 0, JSON.stringify(inject));
-check('注册了 5 条路由', registered.length === 5, registered.map((r) => r.path).join(' '));
+check('注册了 7 条路由', registered.length === 7, registered.map((r) => r.path).join(' '));
 check('每条路由都是 kind=exact', registered.every((r) => r.kind === 'exact'));
 check('只通过 ctx.get 访问 ctx 服务', log.every((entry) => entry.startsWith("ctx.get('webServer')")), log.join(' '));
 
@@ -116,21 +159,12 @@ async function hit(path, { method = 'GET', body, headers } = {}) {
   return res.holder;
 }
 
-const BASE = '/__dsh-skill-panel';
-const probeRoot = mkdtempSync(join(tmpdir(), 'skill-panel-routes-'));
-const probeSkill = join(probeRoot, 'route-probe');
-mkdirSync(probeSkill, { recursive: true });
-writeFileSync(
-  join(probeSkill, 'SKILL.md'),
-  '---\nname: route-probe\ndescription: 路由自测探针\n---\n正文\n',
-  'utf8',
-);
-
 try {
   const ping = await hit(`${BASE}/ping`);
   check('GET ping → 200', ping.status === 200, String(ping.status));
-  check('ping 报出 5 条路由', Array.isArray(ping.json?.routes) && ping.json.routes.length === 5);
+  check('ping 报出 7 条路由', Array.isArray(ping.json?.routes) && ping.json.routes.length === 7);
   check('ping 报出未安装索引状态', Boolean(ping.json?.undeclaredIndex));
+  check('ping 报出的版本与 package.json 一致', ping.json?.version === pkgVersion, `${ping.json?.version} vs ${pkgVersion}`);
 
   const skills = await hit(`${BASE}/skills?cwd=${encodeURIComponent(process.cwd())}`);
   check('GET skills → 200 且是扫描报告', skills.status === 200 && Array.isArray(skills.json?.skills));
@@ -139,6 +173,65 @@ try {
   const skillsNoCwd = await hit(`${BASE}/skills`);
   check('不带 cwd 时仍返回报告（项目根留空）', skillsNoCwd.status === 200 && skillsNoCwd.json?.cwd === null, String(skillsNoCwd.json?.cwd));
   check('不带 cwd 时不列项目级根', skillsNoCwd.json?.roots.every((r) => !r.source.startsWith('project-')));
+
+  // ---- 0.3.0 · GET /usage ------------------------------------------------
+  const usage1 = await hit(`${BASE}/usage`);
+  check('GET usage → 200', usage1.status === 200, String(usage1.status));
+  check('usage 返回 ok:true 与 skills 数组', usage1.json?.ok === true && Array.isArray(usage1.json?.skills));
+  check(
+    'usage 报出扫描口径（scanned / skipped / sessions / updatedAt）',
+    typeof usage1.json?.scanned === 'number' &&
+      typeof usage1.json?.skipped === 'number' &&
+      typeof usage1.json?.sessions === 'number' &&
+      typeof usage1.json?.updatedAt === 'number',
+    `scanned=${usage1.json?.scanned} skipped=${usage1.json?.skipped} sessions=${usage1.json?.sessions}`,
+  );
+  check('usage 读到探针会话里的那次调用', usage1.json?.skills?.[0]?.name === 'route-probe' && usage1.json?.skills?.[0]?.count === 1, JSON.stringify(usage1.json?.skills));
+  check(
+    'usage 索引落在配置的路径（自测绝不写真实 ~/.dsh）',
+    usage1.json?.storePath === probeStore,
+    usage1.json?.storePath,
+  );
+  check('usage 索引文件真的生成了', existsSync(probeStore));
+  check(
+    'usage 索引里的技能行只有 name / count / lastAt',
+    (usage1.json?.skills ?? []).every((row) => Object.keys(row).every((key) => ['name', 'count', 'lastAt'].includes(key))),
+  );
+  check('usage 明说不存对话内容', String(usage1.json?.privacy).includes('不存任何对话内容'), usage1.json?.privacy);
+  check(
+    'usage 索引文本里没有任何会话正文（只有技能名）',
+    !readFileSync(probeStore, 'utf8').includes('正文'),
+  );
+
+  const usage2 = await hit(`${BASE}/usage`);
+  check('第二次调用增量跳过未变化的会话日志', usage2.json?.skipped >= 1 && usage2.json?.scanned === 0, `skipped=${usage2.json?.skipped} scanned=${usage2.json?.scanned}`);
+  check('增量后计数没有翻倍', usage2.json?.skills?.[0]?.count === 1, JSON.stringify(usage2.json?.skills));
+
+  // ---- 0.3.0 · GET /checks ------------------------------------------------
+  const checksResp = await hit(`${BASE}/checks?cwd=${encodeURIComponent(process.cwd())}`);
+  check('GET checks → 200', checksResp.status === 200, String(checksResp.status));
+  check('checks 返回 ok:true 与 checks 数组', checksResp.json?.ok === true && Array.isArray(checksResp.json?.checks));
+  check(
+    'checks 给出四类汇总计数',
+    ['shadowed', 'shortDescription', 'dirNameMismatch', 'emptyBody'].every(
+      (key) => typeof checksResp.json?.summary?.[key] === 'number',
+    ),
+    JSON.stringify(checksResp.json?.summary),
+  );
+  check(
+    'checks 对真实扫描给出真实命中（route-probe 描述只有 6 字）',
+    (checksResp.json?.checks ?? []).some((row) => row.skill === 'route-probe' && row.kind === 'short-description'),
+    (checksResp.json?.checks ?? []).map((row) => `${row.kind}:${row.skill}`).join(' '),
+  );
+  check(
+    'checks 每条都带 {kind, skill, detail}',
+    (checksResp.json?.checks ?? []).every((row) => row.kind && row.skill && row.detail),
+  );
+  check('checks 讲明正文按文件字节估计', String(checksResp.json?.note).includes('按文件字节估计'), checksResp.json?.note);
+  check('checks 带回被扫描的条目数', typeof checksResp.json?.scannedSkills === 'number');
+
+  const checksNoCwd = await hit(`${BASE}/checks`);
+  check('checks 不带 cwd 也能答（只看用户级根）', checksNoCwd.status === 200 && checksNoCwd.json?.cwd === null);
 
   const wrongMethod = await hit(`${BASE}/skills`, { method: 'POST', body: {} });
   check('GET 路由用 POST → 405', wrongMethod.status === 405, String(wrongMethod.status));
