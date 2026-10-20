@@ -216,16 +216,15 @@ the same contract the top-downloaded skill plugins use:
   `localeService.bind(LOCALE_NS)`.
 - `t(key, vars)` resolves 宿主 current language → Chinese → the key itself, and interpolates
   `{name}`-style placeholders itself (the host call is `t(key)`, no var injection).
-- Converted so far (`t()` call sites; everything falls back to Chinese when the host service is absent):
-  nav row + page title, the four tab labels, refresh, copy, loading / not-loaded states, the whole list
-  header (project-root lines, search placeholder, group create/delete), row chips and row actions
-  (disable / restore / read body / collapse), the provider no-file note, both long "the switch only
-  renames the entry file" notes, the roots and index section titles, the usage view (scan line, scope
-  line, empty warning, per-row count and last-call time), the problems view (provider note, summary,
-  "no problems found"), read-failure and bad-frontmatter copy, and the footer line.
-- Still Chinese-only (next slices): the module-scope label maps (reason / source / category names),
-  the status filter chips, and the drag-board body copy plus the group-toggle notices. Remaining UI strings are
-  being moved over slice by slice; the dictionary is the single place to edit copy from now on.
+- **Every user-facing string now goes through `t()`.** The dictionary holds **236 keys** with
+  identical zh/en key sets and **101 call sites**, covering the four pages, both dialogs, the drag
+  board, every empty state, every error line, the root list, the index card and the footer. What is
+  left in Chinese is (a) the SKILL.md keyword patterns used to classify skills - they must stay
+  Chinese because they match Chinese descriptions - and (b) one developer `console.log`.
+- **Language follows the host, and a test proves it.** The new assertion hands `apply()` a fake
+  locale service and checks the nav row label comes back as that service's own translation, so the
+  panel really defers to the host instead of shipping a private language switch. With no locale
+  service the same strings fall back to Chinese, which is what every other assertion exercises.
 
 ### Added — five i18n assertions (286 total)
 

@@ -668,7 +668,40 @@ check(
     clientCode.includes("get('locale')") &&
     clientCode.includes('localeService.register(LOCALE_NS, MESSAGES)') &&
     clientCode.includes('localeService.bind(LOCALE_NS)'),
-);;
+);
+
+// ── 语言真的跟随宿主：塞一个假 locale 服务，文案必须变成它给的值 ──
+{
+  const fresh = await loadBundle(react);
+  const seenRegistrations = [];
+  let boundNs = null;
+  const shell = makeCtx(true);
+  shell.ctx.get = (name) =>
+    name === 'locale'
+      ? {
+          register(ns, dictionaries) {
+            seenRegistrations.push({ ns, dictionaries });
+            return () => {};
+          },
+          bind(ns) {
+            boundNs = ns;
+            return (key) => `EN:${key}`;
+          },
+        }
+      : undefined;
+  fresh.apply(shell.ctx);
+  const navRow = shell.registrations.filter((r) => r.options && r.options.name === 'sidebar.panellist')[0];
+  check(
+    '宿主给了 locale 服务：字典按命名空间注册，且 nav 行文案改由宿主的翻译函数提供',
+    boundNs === 'skill-cockpit' &&
+      seenRegistrations.length === 1 &&
+      seenRegistrations[0].ns === 'skill-cockpit' &&
+      Boolean(seenRegistrations[0].dictionaries && seenRegistrations[0].dictionaries.zh && seenRegistrations[0].dictionaries.en) &&
+      Boolean(navRow) &&
+      navRow.options.label === 'EN:nav.label',
+    JSON.stringify({ boundNs, label: navRow && navRow.options.label }),
+  );
+};
 
 
 const runAgain = makeCtx(true);

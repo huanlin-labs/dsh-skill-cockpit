@@ -1,7 +1,7 @@
 # dsh-skill-cockpit
 
-> **Status: v0.6.7 — works end-to-end on a real desktop install.**
-> 6/6 self-test suites · **281 assertions**, all green, and CI runs the same suites on every push.
+> **Status: v0.6.8 — works end-to-end on a real desktop install.**
+> 6/6 self-test suites · **287 assertions**, all green, and CI runs the same suites on every push.
 > Published as `dsh-skill-cockpit`: **npm currently carries 0.2.3**, and this 0.6.7 is the next
 > release. (The bare name `dsh-skill-panel` belongs to a different author.) Screenshots are being
 > retaken for 0.6.7 — see [Screenshots](#screenshots).
@@ -119,7 +119,7 @@ otherwise sit. A switch that silently did nothing would be worse than no switch.
 
 ## Screenshots
 
-Being retaken against v0.6.7 and will be committed to `docs/screenshots/`:
+Being retaken against v0.6.8 and will be committed to `docs/screenshots/`:
 
 | File | View | Status |
 |---|---|---|
