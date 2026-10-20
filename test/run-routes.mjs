@@ -264,8 +264,15 @@ try {
   const readBody = await hit(`${BASE}/body`);
   check('GET body 缺参数 → 400', readBody.status === 400, `${readBody.status} ${readBody.json?.error}`);
 
+  // 0.3.2 · cwd is OPTIONAL: the panel is also a standalone page with no session.
+  // Without a cwd the report still covers every user-level root, so the whitelist
+  // still holds — it merely has no project-level entries to vouch for.
   const readBodyNoCwd = await hit(`${BASE}/body?path=${encodeURIComponent(join(probeSkill, 'SKILL.md'))}`);
-  check('GET body 缺 cwd → 403（没有报告就没有白名单）', readBodyNoCwd.status === 403, `${readBodyNoCwd.status} ${readBodyNoCwd.json?.error}`);
+  check(
+    'GET body 不带 cwd → 200（白名单退化为用户级根，仍只放报告里的入口）',
+    readBodyNoCwd.status === 200 && typeof readBodyNoCwd.json?.text === 'string',
+    `${readBodyNoCwd.status} ${readBodyNoCwd.json?.error}`,
+  );
 
   const readBodyOk = await hit(
     `${BASE}/body?path=${encodeURIComponent(join(probeSkill, 'SKILL.md'))}&cwd=${encodeURIComponent(probeRoot)}`,
@@ -288,22 +295,40 @@ try {
   );
   check('GET body 读插件自己的数据文件 → 403（白名单只放技能入口）', readBodySens.status === 403, String(readBodySens.status));
 
+  // 0.3.2 · cwd is OPTIONAL for the write too: the write-root gate is the real
+  // boundary, and the standalone page has no session to supply one. Requiring it
+  // only broke the panel's own switch without adding any protection.
   const toggleNoCwd = await hit(`${BASE}/toggle`, {
     method: 'POST',
     body: { filePath: join(probeSkill, 'SKILL.md'), disable: true },
   });
   check(
-    'toggle 不带 cwd → 403 且明说拒绝（不静默退回全局层）',
-    toggleNoCwd.status === 403 && String(toggleNoCwd.json?.error).includes('本次操作已拒绝'),
+    'toggle 不带 cwd → 200（写根门独立于会话）',
+    toggleNoCwd.status === 200,
     `${toggleNoCwd.status} ${toggleNoCwd.json?.error}`,
   );
-  check('被拒绝的 toggle 没有改名', existsSync(join(probeSkill, 'SKILL.md')));
+  check('不带 cwd 的 toggle 真的改名了', existsSync(join(probeSkill, 'SKILL.md.disabled')));
 
+  const restoreNoCwd = await hit(`${BASE}/toggle`, {
+    method: 'POST',
+    body: { filePath: join(probeSkill, 'SKILL.md.disabled'), disable: false },
+  });
+  check(
+    '不带 cwd 也能改回来',
+    restoreNoCwd.status === 200 && existsSync(join(probeSkill, 'SKILL.md')),
+    `${restoreNoCwd.status} ${restoreNoCwd.json?.error}`,
+  );
+
+  // A cwd that does not resolve must not become a way around the write-root gate.
   const ghostCwd = await hit(`${BASE}/toggle`, {
     method: 'POST',
-    body: { filePath: join(probeSkill, 'SKILL.md'), disable: true, cwd: join(probeRoot, 'no-such-cwd') },
+    body: { filePath: outsideFile, disable: true, cwd: join(probeRoot, 'no-such-cwd') },
   });
-  check('toggle 带一个不存在的 cwd → 403', ghostCwd.status === 403, `${ghostCwd.status} ${ghostCwd.json?.error}`);
+  check(
+    '不存在的 cwd 不会变成绕过写根门的后门 → 403',
+    ghostCwd.status === 403 && String(ghostCwd.json?.error).includes('可写技能根'),
+    `${ghostCwd.status} ${ghostCwd.json?.error}`,
+  );
 
   const toggleOutside = await hit(`${BASE}/toggle`, {
     method: 'POST',

@@ -66,20 +66,22 @@ stores skill names, invocation counts and timestamps. The scan is incremental: a
 ## Security: two refusals, both enforced by the host half
 
 The panel is a local web surface, so the routes do not trust their caller. Two refusals are part
-of the contract (0.3.1) and each one has a negative test in the suite:
+of the contract, and each one has a negative test in the suite:
 
-- **`/body` is whitelist-only.** It answers **only** for entry files that the `/skills` report for
-  the *same* `cwd` listed; any other path — an arbitrary file, the plugin's own data file, a path
-  that merely exists — is refused with **403** and no content. The route therefore cannot be turned
-  into a file reader. (Before 0.3.1 it was: any path was read. Found by review, not by an incident.)
-- **`/toggle` requires a resolvable session and a target inside the two user-level write roots.**
-  `POST /toggle` carries `cwd`; if that cwd is missing or does not resolve to an existing
-  directory the call is refused instead of silently falling back to the global layer. The target
-  must sit inside `~/.dsh/skills` or `~/.agents/skills`; **project-level roots are read-only even
-  when the report lists the file**, because a cwd-derived path must never become a write.
+- **`/body` is whitelist-only.** It answers **only** for entry files that the `/skills` report
+  listed; any other path — an arbitrary file, the plugin's own data file, a path that merely
+  exists — is refused with **403** and no content, so the route cannot be turned into a file
+  reader. (Before 0.3.1 it read any path it was given; found by review, not by an incident.)
+- **`/toggle` only ever writes inside the two user-level write roots.** The target must sit inside
+  `~/.dsh/skills` or `~/.agents/skills`; **project-level roots are read-only even when the report
+  lists the file**, because a path derived from a session's `cwd` must never become a write.
 
-Requests carrying a foreign `Origin` are refused with 403, and no request may touch anything
-outside those two write roots unless the caller wants it done by hand.
+`cwd` is **optional** on both routes (0.3.2): this panel is also a standalone page that has no
+session at all. Without it the report simply has no project-level roots, so those entries are
+refused while every user-level one still works — and a `cwd` that does not resolve is ignored
+rather than trusted, so it cannot be used to slip past the write-root gate.
+
+Requests carrying a foreign `Origin` are refused with 403.
 
 ## Why some skills cannot be disabled
 

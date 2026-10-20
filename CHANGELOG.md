@@ -15,6 +15,31 @@ checklist are outstanding.
 - No screenshots yet.
 - The npm release is still `0.2.3`; `0.3.x` is delivered from source plus the local link.
 
+## [0.3.2] — 2026-10-20
+
+### Fixed
+
+- **`cwd` is optional again, on both routes.** 0.3.1 refused every call that arrived without a
+  session cwd — which broke the panel's own switch and its "read body" button on the standalone
+  page (that page honestly reports `项目根: 无`, so it never has a cwd). Requiring one added no
+  protection: the real boundary is the write-root whitelist, and project-level roots are read-only
+  either way.
+  - `/body` without `cwd` builds the report without project-level roots and still serves **only**
+    entries that report listed; asking for a project-level entry gets a 403 that says why.
+  - `/toggle` without `cwd` works inside the two write roots. A `cwd` that does not resolve is
+    ignored rather than trusted, so it cannot be used to slip past the write-root gate.
+
+### Changed
+
+- The client sends `cwd` only when a session supplies one, and no longer replaces the body with a
+  "no session" placeholder.
+
+### Tests
+
+- 6/6 suites · **275 assertions** (was 274): the two "missing cwd ⇒ 403" cases became the positive
+  cases that matter (`/body` reads a user-level entry, `/toggle` renames and restores both work
+  without a cwd), plus one new case proving a bogus cwd cannot bypass the write-root gate.
+
 ## [0.3.1] — 2026-10-20
 
 A security pass over the two routes that could be abused, done before the first real release.
