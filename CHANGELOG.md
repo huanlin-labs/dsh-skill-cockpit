@@ -55,6 +55,29 @@ Polish pass on 0.4.0 after the first real-machine look. Visual only; no behaviou
 - **"用量" and "问题" views now use the same language as the list**: one grouped card with
   hairline-separated rows, quiet chips, and the shared `.cockpit-*` classes instead of the old
   inline-styled boxes.
+## [0.5.0] — 2026-10-20
+
+Grouping. A flat list of 47 skills is not a list, it is a heap: nothing tells you
+where to look. This release gives the list a second dimension.
+
+### Added
+
+- **Six functional groups** — 文档办公 / 代码工程 / 设计视觉 / 写作沟通 / 研究资料 / 元技能.
+  A skill carries 1–3 tags, so it can appear under more than one group; each group is
+  its own card with a header (name · count · enabled count).
+- **Custom groups** — create one with the input above the list, then attach skills to it
+  with the per-row 「加入分组…」 dropdown. Custom groups get a delete button in their header.
+- **Per-group bulk switch** — 全开 / 全停 on each group header, driving the same single
+  `/toggle` route once per member. The only disk write is still the entry-file rename.
+- **Tag chips per row** — the groups a skill belongs to are visible on the row itself.
+
+### Notes
+
+- Assignments live in `localStorage` (`dsh-skill-panel.groups.v1`), not on disk: the plugin's
+  only write action remains renaming `SKILL.md` ↔ `SKILL.md.disabled`.
+- Group membership for skills with no hand-written mapping is guessed from the description
+  (keyword fallback); anything unmapped lands in 未分组, which is shown honestly rather than
+  silently dropped.
 ## [Unreleased]
 
 Public repository opened to reserve the name **`dsh-skill-cockpit`**. The plugin is functional but
