@@ -4,6 +4,42 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-10-20
+
+Visual rework of the panel, driven by a source-level survey of the ecosystem's most-starred
+skill panels (`cheshireez/dsh-skill-hub`, `re-ITRT/dsh-skill-mcp-panel`,
+`VDERR/dsh-echocat-skill-panel`, `Imzl-zl/dsh-toolbox-ui`). Behaviour, routes and the
+single-write action are unchanged: this release only changes how the page looks and reads.
+
+### Changed
+
+- **One grouped card instead of a bordered box per row.** Rows are transparent bands with a
+  0.5px hairline separator inside a single rounded card, so 31 skills read as a list rather
+  than 31 boxes.
+- **Rows carry only what you scan for**: name, one ellipsis line of description, switch.
+  The raw entry path (`…/SKILL.md`) now appears only when a row is expanded.
+- **Badges are quiet and conditional.** The default row shows one neutral source chip; a tone
+  is only used for real exceptions (disabled / broken / shadowed), matching "label only when
+  non-default".
+- **A 960px centred column** with a 24px/700 title, a single segmented control instead of two
+  rows of loose pills, and a fixed type scale (24 / 15 / 15 / 13.5 / 13 / 12.5 / 12 / 11 / 10.5).
+- **Styles moved into one scoped `<style>` block** (every selector prefixed `cockpit-`), because
+  inline styles cannot express `:hover`, `:focus-visible` or `prefers-reduced-motion`.
+
+### Fixed
+
+- `--dsw-alias-state-warning-primary` does not exist in the host (the real name is
+  `--dsw-alias-state-warn-primary`), so the warning colour had been silently falling back to a
+  literal on every render. Same class of bug for `--dsw-alias-bg-code` (no such token): button
+  fills now use `--dsw-alias-interactive-bg-hover`, and monospace text uses the real
+  `--ds-font-family-code`.
+
+### Added
+
+- Keyboard focus ring on rows / controls (`--dsw-focus-ring-width` + `--dsw-focus-ring-color`).
+- `prefers-reduced-motion` disables transitions and animation.
+- Five source-level guard assertions (280 total) locking the new structure and the two token
+  fixes, so a later edit cannot quietly regress to per-row boxes or a dead token.
 ## [Unreleased]
 
 Public repository opened to reserve the name **`dsh-skill-cockpit`**. The plugin is functional but

@@ -446,6 +446,39 @@ const pkgVersion = JSON.parse(
   readFileSync(join(import.meta.dirname, '..', 'package.json'), 'utf8'),
 ).version;
 
+// ---- 3g. 0.4.0 · 界面重构的结构性断言 -------------------------------------
+// 只增不减：锁住 0.4.0 的视觉决定，防止后续改动悄悄退回"每行一个描边卡片"，
+// 也防止重新引入宿主里根本不存在的令牌（它们的 var() 会静默吃 fallback）。
+
+check(
+  '0.4.0：列表是一张分组卡 + 行间发丝线（不再每行一个描边盒子）',
+  clientCode.includes("className: 'cockpit-card'") &&
+    /\.cockpit-row\+\.cockpit-row\{border-top:\.5px solid/.test(clientCode),
+  'cockpit-card + .cockpit-row+.cockpit-row hairline',
+);
+check(
+  '0.4.0：等宽字号用 --ds-font-family-code（--dsw-font-mono 在宿主里定义 0 次）',
+  clientCode.includes('--ds-font-family-code') && !clientCode.includes('--dsw-font-mono'),
+  '',
+);
+check(
+  '0.4.0：警告色用 --dsw-alias-state-warn-primary（…-warning-primary 定义 0 次）',
+  clientCode.includes('--dsw-alias-state-warn-primary') &&
+    !clientCode.includes('--dsw-alias-state-warning-primary'),
+  '',
+);
+check(
+  '0.4.0：无障碍两条已就位（focus-visible 焦点环 + prefers-reduced-motion）',
+  clientCode.includes('--dsw-focus-ring-width') && clientCode.includes('prefers-reduced-motion'),
+  '',
+);
+check(
+  '0.4.0：原始入口路径只在展开时渲染，列表里不再每行显示',
+  clientSource.includes("open ? h('div', { className: 'cockpit-path' }") &&
+    !clientCode.includes("style: { color: C.dim, fontSize: '11px', marginTop: '4px', wordBreak: 'break-all' }"),
+  '',
+);
+
 const listView = await renderText({ 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null });
 check(
   '视图切换：列表 / 用量 / 问题 三个按钮都在，并带 data-dsh-view 钩子',
