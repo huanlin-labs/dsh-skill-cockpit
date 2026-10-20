@@ -135,6 +135,22 @@ whole page read as flat grey.
   objects instead of one grey field.
 - Left column's card list scrolls to 70vh (was 62vh) so more than half a column is
   visible at once.
+## [0.6.3] — 2026-10-20
+
+Two things the 0.6.2 pass got wrong, both visible on the first real-machine look.
+
+### Fixed
+
+- **The 分组 page now gives each side its own scrollbar.** 0.6.2 only made the right
+  side a grid, so on a viewport where two 300px columns do not fit it collapsed back
+  to one column and the page kept growing downward — which looked like nothing had
+  changed. The board now has a fixed height (`calc(100vh - 300px)`, min 420px) and both
+  columns scroll independently (`overflow:auto` + `scrollbar-gutter:stable`), so the
+  page itself never grows. Right-side columns start at 250px so two fit sooner.
+- **Colour, not one flat grey.** Each group header now takes a rotating accent from the
+  host's own semantic tokens (brand / success / warn / business / error) via
+  `data-accent`, rendered as a 3px inset bar — five distinguishable groups instead of
+  six identical grey boxes. Group header background moved up one surface step.
 ## [Unreleased]
 
 Public repository opened to reserve the name **`dsh-skill-cockpit`**. The plugin is functional but
