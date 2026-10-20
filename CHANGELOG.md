@@ -40,6 +40,21 @@ single-write action are unchanged: this release only changes how the page looks 
 - `prefers-reduced-motion` disables transitions and animation.
 - Five source-level guard assertions (280 total) locking the new structure and the two token
   fixes, so a later edit cannot quietly regress to per-row boxes or a dead token.
+## [0.4.1] — 2026-10-20
+
+Polish pass on 0.4.0 after the first real-machine look. Visual only; no behaviour change.
+
+### Changed
+
+- **The segmented control reads as one control again.** Under a dark host the 8% hover fill was
+  invisible, so "列表/用量/问题" and the filter row fell apart into two clusters of loose pills.
+  The capsule now sits on `--dsw-alias-bg-module-platform` with a 0.5px hairline, and the active
+  segment is driven by `data-active` instead of an inline colour.
+- **"看正文" and "刷新" are ghost buttons.** A filled button on all 31 rows out-shouted the
+  content; they are now transparent with tertiary ink and only take a fill/ink on hover.
+- **"用量" and "问题" views now use the same language as the list**: one grouped card with
+  hairline-separated rows, quiet chips, and the shared `.cockpit-*` classes instead of the old
+  inline-styled boxes.
 ## [Unreleased]
 
 Public repository opened to reserve the name **`dsh-skill-cockpit`**. The plugin is functional but
