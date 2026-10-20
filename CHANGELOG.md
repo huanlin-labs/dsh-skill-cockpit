@@ -185,6 +185,21 @@ clipped row, so cards were sliced in half and the right side could not be scroll
 - **Group boxes are all the same height** (`clamp(240px, 40vh, 360px)`) with the card grid
   scrolling inside the box — no more ragged column bottoms, and each group has its own
   scrollbar instead of the whole column scrolling as one.
+## [0.6.6] — 2026-10-20
+
+The group-level enable/disable is now expressed as **a switch on the group header**,
+not two text buttons — and a fully disabled group greys out, matching how a single
+disabled skill looks.
+
+### Changed
+
+- 全开 / 全停 buttons → one tri-state switch (`data-on` / `data-mixed`), on both the
+  列表 view's group cards and the 分组 page's group boxes. Mixed state shows the thumb
+  halfway; clicking a mixed or partly-on group disables it, clicking an all-off group
+  enables it.
+- A group whose members are all disabled renders at `opacity:.55` with a muted header
+  (`[data-off="1"]`), so an off group is visible at a glance instead of needing to read
+  the count line.
 ## [Unreleased]
 
 Public repository opened to reserve the name **`dsh-skill-cockpit`**. The plugin is functional but
