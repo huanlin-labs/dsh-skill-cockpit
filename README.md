@@ -1,9 +1,10 @@
 # dsh-skill-cockpit
 
-> **Status: early / work in progress.** This repository is being published ahead of its first
-> release to reserve the name. The plugin already works end-to-end on the author's machine
-> (6/6 self-test suites · 274 assertions) but screenshots and packaging are still being finished.
-> Expect the surface below to change.
+> **Status: v0.6.7 — works end-to-end on a real desktop install; not on npm yet.**
+> 6/6 self-test suites · **281 assertions**, all green, and CI runs the same suites on every push.
+> The npm name is settled as `dsh-skill-cockpit` (the bare `dsh-skill-panel` is taken by another
+> author); first publish is pending. Screenshots are being retaken for 0.6.7 — see
+> [Screenshots](#screenshots).
 
 A **skill cockpit for [DSH](https://github.com/deepseek-ai)** (DeepSeek Harness): one page in the
 app-level navigation that shows every skill the machine actually exposes, says **why** a skill is
@@ -45,6 +46,25 @@ missing, and lets you toggle a single skill without editing anything but its ent
 - **No `@deepseek-ai/dsh*` peer dependency at all.** The host half declares `inject = []` and the
   client half declares only `slots`, so the plugin is not subject to DSH's compatibility-exemption
   gate and does not touch the credentials surface.
+
+## The four pages
+
+The panel is one page in the nav with four views along the top:
+
+| View | What it is for |
+|---|---|
+| **列表** | every skill in one place, grouped into cards: name, source-root tag, functional tags, description, size, per-skill switch, 「看正文」 to read its entry file |
+| **分组** | a board you arrange yourself — drag a card from the left pane into a group on the right; six built-in functional groups (文档办公 · 代码工程 · 设计视觉 · 写作沟通 · 研究资料 · 元技能) plus your own, renameable and deletable |
+| **用量** | per-skill invocation counts aggregated from session logs, so you can see which installed skills have never been used |
+| **问题** | 「loads but earns nothing」 and 「why is this skill missing」 diagnostics, one row per finding |
+
+Two behaviours worth stating explicitly, because both are places where a naive panel lies to you:
+
+- **A group header carries one tri-state switch.** On = every member enabled, off = every member
+  disabled, half = mixed. Clicking it renames the entry files one by one; a fully disabled group
+  greys out, so an off group is visible without reading a count.
+- **Groups and assignments live in this browser (`localStorage`), not on disk.** Arranging skills
+  writes nothing. The only disk write in the whole plugin remains the entry-file rename.
 
 ## HTTP routes (host half, local origin only)
 
@@ -96,6 +116,20 @@ A skill can reach a session down two different roads, and only one of them ends 
 That asymmetry is not a missing feature, it is the host API's shape, so the panel states it
 plainly: a provider-supplied row renders `本面板无法禁用（属 … provider）` where the switch would
 otherwise sit. A switch that silently did nothing would be worse than no switch.
+
+## Screenshots
+
+Being retaken against v0.6.7 and will be committed to `docs/screenshots/`:
+
+| File | View | Status |
+|---|---|---|
+| `list.png` | 列表 — grouped cards, per-skill switches, source tags | pending |
+| `groups.png` | 分组 — drag-and-drop board, tri-state group switches, greyed-off group | pending |
+| `usage.png` | 用量 — per-skill invocation counts | pending |
+| `problems.png` | 问题 — why-invisible diagnostics | pending |
+
+This README ships without images on purpose: no placeholder logos and no screenshots of an older
+UI. When they land they go in the table above, first one right under the title.
 
 ## Install (from source, for now)
 

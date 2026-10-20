@@ -200,6 +200,18 @@ disabled skill looks.
 - A group whose members are all disabled renders at `opacity:.55` with a muted header
   (`[data-off="1"]`), so an off group is visible at a glance instead of needing to read
   the count line.
+## [Unreleased]
+
+### Docs
+
+- **Both READMEs brought up to 0.6.7.** They still described 0.3.x: no 分组 page, no tri-state
+  group switch, stale suite counts (`274 assertions` / `4/4 套件 · 124 项`), and the Chinese one
+  still told readers to mount the package as `dsh-skill-panel` even though the package name is
+  `dsh-skill-cockpit`.
+- Added a **四个页面 / The four pages** section (列表 · 分组 · 用量 · 问题) and a **Screenshots**
+  section that names the four images still to be taken — no placeholder images, no screenshots of
+  an older UI.
+- `docs/screenshots/README.md` records what each shot must show and the capture rules.
 ## [0.6.7] — 2026-10-20
 
 Found the actual bug behind "全开 / 全停 点了没反应". It was not the disabled button
