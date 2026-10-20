@@ -99,6 +99,25 @@ organisation, on a page of its own instead of a dropdown squeezed into a row.
 - Nothing is written to disk. The plugin's only write action is still renaming
   `SKILL.md` ↔ `SKILL.md.disabled`; groups and assignments live in the browser.
 - Deleting a group never touches skills — it only drops the assignment record.
+## [0.6.1] — 2026-10-20
+
+The board cards. On the 分组 page a skill was a bare chip showing only its name —
+`canvas-design` tells you nothing about what it does, so you had to already know.
+
+### Changed
+
+- **Every skill on the 分组 page is now a card**: name on top, two lines of its real
+  description underneath (line-clamped, whitespace collapsed). Left pane is a single
+  column of full-width cards with its own scroll (62vh); each group renders its members
+  as a wrapping grid of the same cards.
+- Cards inside a group are still draggable — you can move a skill from one group to
+  another by dragging it, not only from the left pane.
+
+### Notes
+
+- Built-in (auto-derived) members render dimmed and without × so it stays obvious that
+  their membership comes from the functional table; manually placed ones carry ×.
+- Still no disk writes beyond the entry-file rename.
 ## [Unreleased]
 
 Public repository opened to reserve the name **`dsh-skill-cockpit`**. The plugin is functional but
