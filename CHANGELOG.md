@@ -78,6 +78,27 @@ where to look. This release gives the list a second dimension.
 - Group membership for skills with no hand-written mapping is guessed from the description
   (keyword fallback); anything unmapped lands in 未分组, which is shown honestly rather than
   silently dropped.
+## [0.6.0] — 2026-10-20
+
+The group editor. 0.5.0 organised the list; this release is where you build the
+organisation, on a page of its own instead of a dropdown squeezed into a row.
+
+### Added
+
+- **「分组」 page** (second tab, next to 列表) — left pane lists every installed skill
+  as a draggable chip, right pane lists the six built-in groups plus your own.
+  Drag a chip onto a group and it joins; drag is the whole interaction.
+- **Custom groups are editable there** — rename inline, delete with one click,
+  members removable with ×. Built-in groups stay fixed (their membership is derived
+  from the functional table), so the page shows which chips are yours (solid) and
+  which are automatic (dimmed).
+- Renames persist immediately: every edit writes the same localStorage record.
+
+### Notes
+
+- Nothing is written to disk. The plugin's only write action is still renaming
+  `SKILL.md` ↔ `SKILL.md.disabled`; groups and assignments live in the browser.
+- Deleting a group never touches skills — it only drops the assignment record.
 ## [Unreleased]
 
 Public repository opened to reserve the name **`dsh-skill-cockpit`**. The plugin is functional but
