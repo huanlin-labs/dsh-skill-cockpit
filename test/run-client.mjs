@@ -619,7 +619,13 @@ check(
   '页脚显示面板版本，且与 package.json 一致',
   listView.text.includes(`面板版本 v${pkgVersion}`),
   pkgVersion,
-);
+)
+
+check(
+  '整组开/停按当前状态筛目标（enabled === disable），不会永远空集',
+  clientCode.includes('Boolean(s.enabled) === Boolean(disable)') &&
+    !clientCode.includes('s.enabled === !disable'),
+);;
 
 
 const runAgain = makeCtx(true);

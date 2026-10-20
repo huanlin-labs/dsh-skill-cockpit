@@ -200,6 +200,30 @@ disabled skill looks.
 - A group whose members are all disabled renders at `opacity:.55` with a muted header
   (`[data-off="1"]`), so an off group is visible at a glance instead of needing to read
   the count line.
+## [0.6.7] — 2026-10-20
+
+Found the actual bug behind "全开 / 全停 点了没反应". It was not the disabled button
+(0.6.5) and not the silent return: **the target filter was inverted**.
+
+```js
+// before — for 停用 this selected members whose enabled is FALSE, i.e. none
+const want = members.filter((s) => s.enabled === !disable)
+// after  — 停用 targets the currently-enabled ones, 启用 targets the currently-off ones
+const want = members.filter((s) => Boolean(s.enabled) === Boolean(disable))
+```
+
+Every click therefore produced `want = []` and answered "这一组已经全部停用了，无需
+操作" — which is exactly the notice the panel showed while all five switches were on.
+
+### Fixed
+
+- Group bulk toggle now selects the right members and actually calls `/toggle` once per
+  member: 停用 → the enabled ones, 启用 → the disabled ones.
+
+### Added
+
+- Regression assertion (client suite, 281 assertions total) pinning the filter to
+  `Boolean(s.enabled) === Boolean(disable)` and rejecting the old inverted form.
 ## [Unreleased]
 
 Public repository opened to reserve the name **`dsh-skill-cockpit`**. The plugin is functional but
