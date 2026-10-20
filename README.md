@@ -2,8 +2,8 @@
 
 > **Status: early / work in progress.** This repository is being published ahead of its first
 > release to reserve the name. The plugin already works end-to-end on the author's machine
-> (6/6 self-test suites · 244 assertions) but the public docs, screenshots, and packaging are
-> still being finished. Expect the surface below to change.
+> (6/6 self-test suites · 274 assertions) but screenshots and packaging are still being finished.
+> Expect the surface below to change.
 
 A **skill cockpit for [DSH](https://github.com/deepseek-ai)** (DeepSeek Harness): one page in the
 app-level navigation that shows every skill the machine actually exposes, says **why** a skill is
@@ -52,16 +52,34 @@ missing, and lets you toggle a single skill without editing anything but its ent
 |---|---|---|
 | GET | `/__dsh-skill-panel/ping` | identity, version, route list, writable roots |
 | GET | `/__dsh-skill-panel/skills?cwd=…` | the full scan report (`cwd` fixes the project-level roots) |
-| GET | `/__dsh-skill-panel/body?path=…` | one entry file's text (read-only, size-capped) |
+| GET | `/__dsh-skill-panel/body?path=…&cwd=…` | one entry file's text (whitelist-only, size-capped) |
 | GET | `/__dsh-skill-panel/undeclared?q=…` | search the "not installed" index (read-only) |
 | GET | `/__dsh-skill-panel/usage` | `{ ok, skills:[{name,count,lastAt}], scanned, skipped, sessions, updatedAt }` |
 | GET | `/__dsh-skill-panel/checks?cwd=…` | `{ ok, checks:[{kind,skill,detail}], summary, thresholds, note }` |
-| POST | `/__dsh-skill-panel/toggle` | `{ filePath, disable, plan? }` → entry-file rename |
+| POST | `/__dsh-skill-panel/toggle` | `{ filePath, disable, cwd, plan? }` → entry-file rename |
 
 `/usage` writes exactly one file, `<dshHome>/dsh-skill-cockpit/usage.json`, and only ever
 stores skill names, invocation counts and timestamps. The scan is incremental: a session log whose
 `(size, mtime)` is unchanged is skipped, so the second call on this machine took 21 ms against a
 104-session history. Requests carrying a foreign `Origin` are refused with 403.
+
+## Security: two refusals, both enforced by the host half
+
+The panel is a local web surface, so the routes do not trust their caller. Two refusals are part
+of the contract (0.3.1) and each one has a negative test in the suite:
+
+- **`/body` is whitelist-only.** It answers **only** for entry files that the `/skills` report for
+  the *same* `cwd` listed; any other path — an arbitrary file, the plugin's own data file, a path
+  that merely exists — is refused with **403** and no content. The route therefore cannot be turned
+  into a file reader. (Before 0.3.1 it was: any path was read. Found by review, not by an incident.)
+- **`/toggle` requires a resolvable session and a target inside the two user-level write roots.**
+  `POST /toggle` carries `cwd`; if that cwd is missing or does not resolve to an existing
+  directory the call is refused instead of silently falling back to the global layer. The target
+  must sit inside `~/.dsh/skills` or `~/.agents/skills`; **project-level roots are read-only even
+  when the report lists the file**, because a cwd-derived path must never become a write.
+
+Requests carrying a foreign `Origin` are refused with 403, and no request may touch anything
+outside those two write roots unless the caller wants it done by hand.
 
 ## Why some skills cannot be disabled
 

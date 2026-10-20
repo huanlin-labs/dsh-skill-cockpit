@@ -66,11 +66,11 @@ DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加�
 |---|---|---|
 | GET | `/__dsh-skill-panel/ping` | 插件身份 + 路由清单 + 可写根 |
 | GET | `/__dsh-skill-panel/skills?cwd=…` | 全量扫描报告（`cwd` 决定项目级根） |
-| GET | `/__dsh-skill-panel/body?path=…` | 读一个入口文件正文（只读，带体积上限） |
+| GET | `/__dsh-skill-panel/body?path=…&cwd=…` | 读一个入口文件正文（**白名单制**：只认 `/skills` 报告里出现过的入口，带体积上限） |
 | GET | `/__dsh-skill-panel/undeclared?q=…` | 搜未安装技能索引（只读） |
 | GET | `/__dsh-skill-panel/usage` | 技能调用次数：`{ ok, skills:[{name,count,lastAt}], scanned, skipped, sessions, updatedAt }` |
 | GET | `/__dsh-skill-panel/checks?cwd=…` | 四类「能加载但白占坑」诊断：`{ ok, checks:[{kind,skill,detail}], summary, thresholds, note }` |
-| POST | `/__dsh-skill-panel/toggle` | `{ filePath, disable, plan? }` → 改名（唯一写动作） |
+| POST | `/__dsh-skill-panel/toggle` | `{ filePath, disable, cwd, plan? }` → 改名（唯一写动作） |
 
 `/usage` 只写一个文件：`<dshHome>/dsh-skill-cockpit/usage.json`，内容只有**技能名 / 调用次数 / 时间戳**
 （不存任何对话内容）；扫描是增量的 —— 会话日志 `(size, mtime)` 没变就跳过，本机 104 个会话的第二次调用 21ms。
@@ -90,10 +90,20 @@ DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加�
 
 `plan: true` 只算不动 → 面板用它做"确认改名"预告，自测也用它验 dry-run。
 
-写路由的护栏（任一条不满足即拒绝并给中文原因）：
-目标必须存在、必须是普通文件（**永不改目录名**）、必须直接位于某个**可写根**内（真实路径比对，防符号链接逃逸）、
-必须正好是入口文件（`<目录>/SKILL.md` 或 `<根>/x.md`）、目标名不得已存在（防覆盖）；
-另有同源栅栏（带外部 `Origin` 的请求一律 403）。
+### 两条拒绝是所有权的边界（0.3.1 起，各有负向测试）
+
+面板是本机 web 面，所以路由**不信调用方**：
+
+- **`/body` 是白名单制**：只回答**同一 `cwd` 的 `/skills` 报告里列过的入口文件**。其它路径 —— 任意文件、插件自己的数据文件、
+  仅仅"存在"的路径 —— 一律 **403 且不回传任何内容**。所以这条路由**不可能被当成任意文件读取器用**。
+  （0.3.1 之前是"给什么读什么"，这条是复核时发现的，不是事故。）
+- **`/toggle` 要求可解析的会话 + 目标落在两个写根内**：请求必须带 `cwd`；`cwd` 缺失或解析不出一个存在的目录时**直接拒绝**，
+  **不静默退回全局层**。目标必须位于 `~/.dsh/skills` 或 `~/.agents/skills` 内；**项目级根只读，哪怕报告里列出了那个文件**
+  （因为由 cwd 推出来的路径永远不该变成写操作）。
+
+其余写路由护栏（任一条不满足即拒绝并给中文原因）：目标必须存在、必须是普通文件（**永不改目录名**）、
+必须直接位于可写根内（真实路径比对，防符号链接逃逸）、必须正好是入口文件（`<目录>/SKILL.md` 或 `<根>/x.md`）、
+目标名不得已存在（防覆盖）；另有同源栅栏（带外部 `Origin` 的请求一律 403）。
 
 ## 自测
 

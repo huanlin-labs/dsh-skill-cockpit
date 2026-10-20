@@ -63,7 +63,11 @@ const ctx = {
 // never touch the real `~/.dsh`. It doubles as the custom skill root below.
 const BASE = '/__dsh-skill-panel';
 const probeRoot = mkdtempSync(join(tmpdir(), 'skill-panel-routes-'));
-const probeSkill = join(probeRoot, 'route-probe');
+// The probe skill lives INSIDE the configured DSH home — that is, inside one of
+// the only two roots the panel may write to. A fixture anywhere else could no
+// longer exercise a real toggle: project/custom roots are read-only by contract.
+const probeHome = join(probeRoot, 'dsh-home');
+const probeSkill = join(probeHome, 'skills', 'route-probe');
 mkdirSync(probeSkill, { recursive: true });
 writeFileSync(
   join(probeSkill, 'SKILL.md'),
@@ -71,7 +75,13 @@ writeFileSync(
   'utf8',
 );
 
-const probeHome = join(probeRoot, 'dsh-home');
+// A file that exists and is readable but is NOT a skill entry: the /body and
+// /toggle guards must refuse it (this is the negative fixture).
+const outsideDir = join(probeRoot, 'outside');
+mkdirSync(outsideDir, { recursive: true });
+const outsideFile = join(outsideDir, 'not-a-skill.md');
+writeFileSync(outsideFile, 'this file is not a skill entry\n', 'utf8');
+
 const probeStore = join(probeRoot, 'usage.json');
 
 // One fake session log (a real zstd frame) so /usage has something to read and
@@ -95,7 +105,6 @@ writeFileSync(
 apply(ctx, {
   dshHome: probeHome,
   usageStorePath: probeStore,
-  customSkillDirs: [probeRoot],
 });
 
 check('导出 name = dsh-skill-cockpit', name === 'dsh-skill-cockpit', name);
@@ -255,16 +264,82 @@ try {
   const readBody = await hit(`${BASE}/body`);
   check('GET body 缺参数 → 400', readBody.status === 400, `${readBody.status} ${readBody.json?.error}`);
 
-  const readBodyOk = await hit(`${BASE}/body?path=${encodeURIComponent(join(probeSkill, 'SKILL.md'))}`);
+  const readBodyNoCwd = await hit(`${BASE}/body?path=${encodeURIComponent(join(probeSkill, 'SKILL.md'))}`);
+  check('GET body 缺 cwd → 403（没有报告就没有白名单）', readBodyNoCwd.status === 403, `${readBodyNoCwd.status} ${readBodyNoCwd.json?.error}`);
+
+  const readBodyOk = await hit(
+    `${BASE}/body?path=${encodeURIComponent(join(probeSkill, 'SKILL.md'))}&cwd=${encodeURIComponent(probeRoot)}`,
+  );
   check('GET body → 200 且读到正文', readBodyOk.status === 200 && typeof readBodyOk.json?.text === 'string' && readBodyOk.json.text.includes('route-probe'));
+
+  // ---- 0.3.1 · the two refusal contracts (negative tests) -----------------
+  const readBodyOutside = await hit(
+    `${BASE}/body?path=${encodeURIComponent(outsideFile)}&cwd=${encodeURIComponent(probeRoot)}`,
+  );
+  check(
+    'GET body 读报告之外的真实文件 → 403（不再是任意文件读）',
+    readBodyOutside.status === 403 && readBodyOutside.json?.ok === false,
+    `${readBodyOutside.status} ${readBodyOutside.json?.error}`,
+  );
+  check('被拒绝的 /body 不回传任何文件内容', typeof readBodyOutside.json?.text === 'undefined');
+
+  const readBodySens = await hit(
+    `${BASE}/body?path=${encodeURIComponent(join(probeRoot, 'dsh-home', 'usage.json'))}&cwd=${encodeURIComponent(probeRoot)}`,
+  );
+  check('GET body 读插件自己的数据文件 → 403（白名单只放技能入口）', readBodySens.status === 403, String(readBodySens.status));
+
+  const toggleNoCwd = await hit(`${BASE}/toggle`, {
+    method: 'POST',
+    body: { filePath: join(probeSkill, 'SKILL.md'), disable: true },
+  });
+  check(
+    'toggle 不带 cwd → 403 且明说拒绝（不静默退回全局层）',
+    toggleNoCwd.status === 403 && String(toggleNoCwd.json?.error).includes('本次操作已拒绝'),
+    `${toggleNoCwd.status} ${toggleNoCwd.json?.error}`,
+  );
+  check('被拒绝的 toggle 没有改名', existsSync(join(probeSkill, 'SKILL.md')));
+
+  const ghostCwd = await hit(`${BASE}/toggle`, {
+    method: 'POST',
+    body: { filePath: join(probeSkill, 'SKILL.md'), disable: true, cwd: join(probeRoot, 'no-such-cwd') },
+  });
+  check('toggle 带一个不存在的 cwd → 403', ghostCwd.status === 403, `${ghostCwd.status} ${ghostCwd.json?.error}`);
+
+  const toggleOutside = await hit(`${BASE}/toggle`, {
+    method: 'POST',
+    body: { filePath: outsideFile, disable: true, cwd: probeRoot },
+  });
+  check(
+    'toggle 目标不在两个写根内 → 403',
+    toggleOutside.status === 403 && String(toggleOutside.json?.error).includes('可写技能根'),
+    `${toggleOutside.status} ${toggleOutside.json?.error}`,
+  );
+  check('被拒绝的 toggle 没有动到根外文件', existsSync(outsideFile));
+
+  const toggleOk = await hit(`${BASE}/toggle`, {
+    method: 'POST',
+    body: { filePath: join(probeSkill, 'SKILL.md'), disable: true, cwd: probeRoot },
+  });
+  check(
+    'cwd 可解析 + 目标在可写根内 → 真改名',
+    toggleOk.status === 200 && toggleOk.json?.applied === true,
+    `${toggleOk.status} ${JSON.stringify(toggleOk.json?.error ?? toggleOk.json?.source)}`,
+  );
+  check('改名后入口变成 .disabled', existsSync(join(probeSkill, 'SKILL.md.disabled')) && !existsSync(join(probeSkill, 'SKILL.md')));
+
+  const toggleBack = await hit(`${BASE}/toggle`, {
+    method: 'POST',
+    body: { filePath: join(probeSkill, 'SKILL.md.disabled'), disable: false, cwd: probeRoot },
+  });
+  check('再点一次恢复原名（applied + 名字回来）', toggleBack.status === 200 && existsSync(join(probeSkill, 'SKILL.md')), String(toggleBack.status));
 } finally {
   rmSync(probeRoot, { recursive: true, force: true });
 }
 
-// default root is readonly, so a toggle from here must be refused, not applied
+// After cleanup the probe tree is gone: a toggle must still be refused, not applied.
 const refused = await hit(`${BASE}/toggle`, {
   method: 'POST',
-  body: { filePath: join(probeRoot, 'gone.md'), disable: true },
+  body: { filePath: join(probeRoot, 'gone.md'), disable: true, cwd: probeRoot },
 });
 check('toggle 目标不存在 → 400/403 拒绝', refused.status === 400 || refused.status === 403, `${refused.status} ${refused.json?.error}`);
 check('没有留下任何探针文件', !existsSync(probeRoot));

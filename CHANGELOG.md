@@ -12,8 +12,38 @@ checklist are outstanding.
 
 ### Known gaps at this point
 
-- `README.md` (English) is a stub; the full bilingual documentation is not written yet.
 - No screenshots yet.
+- The npm release is still `0.2.3`; `0.3.x` is delivered from source plus the local link.
+
+## [0.3.1] — 2026-10-20
+
+A security pass over the two routes that could be abused, done before the first real release.
+Both holes were found by review, not by an incident; both now carry a negative test.
+
+### Security
+
+- **`GET /body` is whitelist-only.** It used to read any path the caller named (verified against a
+  live host: `?path=C:\Windows\win.ini` returned the file). It now answers **only** for entry files
+  that the `/skills` report for the *same* `cwd` listed, compared on real paths; everything else is
+  **403 with no content**. The route can no longer be used as a file reader.
+- **`POST /toggle` requires a resolvable session and a target inside the two write roots.** The
+  request now carries `cwd`; a missing or unresolvable cwd is refused instead of silently falling
+  back to the global layer, and the target must resolve inside `~/.dsh/skills` or
+  `~/.agents/skills`. Project-level roots stay read-only even when the report lists the file.
+- Refusals answer with their own HTTP status (403) instead of the generic 400, so a deliberate
+  security refusal is distinguishable from a malformed request.
+
+### Changed
+
+- The client sends `cwd` with `/body` and `/toggle`, and shows a plain note instead of a request
+  when there is no session cwd to vouch for the path.
+
+### Tests
+
+- 6/6 suites · **274 assertions** (was 262). Route suite 42 → 54: the new cases cover an
+  arbitrary-file `/body`, a `/body` without `cwd`, a `/body` of the plugin's own data file,
+  `toggle` without `cwd`, `toggle` with a non-existent `cwd`, `toggle` outside both write roots,
+  and the positive path (rename → restore) inside a write root.
 
 ## [0.3.0] — 2026-10-20
 
