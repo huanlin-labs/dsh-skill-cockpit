@@ -151,6 +151,20 @@ Two things the 0.6.2 pass got wrong, both visible on the first real-machine look
   host's own semantic tokens (brand / success / warn / business / error) via
   `data-accent`, rendered as a 3px inset bar — five distinguishable groups instead of
   six identical grey boxes. Group header background moved up one surface step.
+## [0.6.4] — 2026-10-20
+
+0.6.3 fixed the columns and the colour, and broke the content: a fixed board height
+(`calc(100vh - 300px)`) plus `height:100%` on the grid stretched each group box to a
+clipped row, so cards were sliced in half and the right side could not be scrolled.
+
+### Fixed
+
+- **No more fixed board height.** The board is back to natural height
+  (`align-items:start`); each column scrolls on its own at `max-height:70vh` with
+  `overflow:auto` and `overscroll-behavior:contain`, so nothing is clipped and the
+  wheel does not leak to the page when a column ends.
+- Group boxes are `align-self:start` with `overflow` no longer hiding their content —
+  a box is exactly as tall as its cards.
 ## [Unreleased]
 
 Public repository opened to reserve the name **`dsh-skill-cockpit`**. The plugin is functional but
