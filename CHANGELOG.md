@@ -165,6 +165,26 @@ clipped row, so cards were sliced in half and the right side could not be scroll
   wheel does not leak to the page when a column ends.
 - Group boxes are `align-self:start` with `overflow` no longer hiding their content —
   a box is exactly as tall as its cards.
+## [0.6.5] — 2026-10-20
+
+### Fixed
+
+- **整组「全开 / 全停」是一条坏功能，现在修好了。** It returned silently when it found
+  no writable target (`if (targets.length === 0) return`), so a click could do nothing
+  and say nothing; the buttons also carried `disabled` when the group was already in the
+  requested state, so the click never reached the handler. The handler now always answers:
+  - all already in that state → notice「这一组已经全部…了，无需操作」
+  - every member read-only → error naming the count and why (项目级技能根只读)
+  - otherwise → notice「整组停用：成功 N · 跳过 M（只读）· 失败 K」, and a per-run error
+    line with the first failing skill.
+  Buttons are only disabled while a run is in flight.
+- **全开 / 全停 now also exist on the 分组 page** (they were only on the list view).
+
+### Changed
+
+- **Group boxes are all the same height** (`clamp(240px, 40vh, 360px)`) with the card grid
+  scrolling inside the box — no more ragged column bottoms, and each group has its own
+  scrollbar instead of the whole column scrolling as one.
 ## [Unreleased]
 
 Public repository opened to reserve the name **`dsh-skill-cockpit`**. The plugin is functional but
