@@ -118,6 +118,23 @@ The board cards. On the 分组 page a skill was a bare chip showing only its nam
 - Built-in (auto-derived) members render dimmed and without × so it stays obvious that
   their membership comes from the functional table; manually placed ones carry ×.
 - Still no disk writes beyond the entry-file rename.
+## [0.6.2] — 2026-10-20
+
+Layout and contrast pass on the 分组 page after the first real-machine look: the
+right-hand side ran straight down (six groups stacked = a very long scroll), and the
+whole page read as flat grey.
+
+### Changed
+
+- **Groups flow into columns instead of stacking**: the right pane is now
+  `repeat(auto-fill, minmax(300px, 1fr))`, so on a 960px page six groups become a
+  2–3 column board rather than one 6-row column.
+- **Contrast raised a step**: cards and group boxes now sit on a visibly lighter
+  surface with a `border-l3` hairline (was `border-l2`), and each group header carries
+  a 2px brand-coloured inset bar on its left edge so the groups read as separate
+  objects instead of one grey field.
+- Left column's card list scrolls to 70vh (was 62vh) so more than half a column is
+  visible at once.
 ## [Unreleased]
 
 Public repository opened to reserve the name **`dsh-skill-cockpit`**. The plugin is functional but
