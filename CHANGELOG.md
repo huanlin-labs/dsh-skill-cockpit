@@ -4,6 +4,13 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.11] — 2026-10-21
+
+### Fixed
+
+- The usage index now carries STORE_VERSION = 2; a store written by an older build is discarded as a whole, which forces one full rescan instead of trusting per-file contributed: {} rows produced by the 0.6.8 detector. Without this, after the detector fix only files that kept growing were recounted (the panel showed 3 skills x2 instead of the real 8/4/4).
+- Usage suite: 60 -> 61 assertions.
+
 ## [0.6.10] — 2026-10-21
 
 ### Documentation

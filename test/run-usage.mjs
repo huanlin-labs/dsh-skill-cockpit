@@ -248,7 +248,7 @@ try {
   const store = JSON.parse(storeText);
   check(
     '落盘结构是 {version, updatedAt, files, skills}',
-    store.version === 1 && typeof store.updatedAt === 'number' && Array.isArray(store.files) && Array.isArray(store.skills),
+    store.version === 2 && typeof store.updatedAt === 'number' && Array.isArray(store.files) && Array.isArray(store.skills),
     Object.keys(store).join(','),
   );
   check('落盘文件表记录 size/mtimeMs/contributed', store.files.every((f) => f.size && f.mtimeMs !== undefined && f.contributed !== undefined));
@@ -290,6 +290,9 @@ try {
   const brokenPath = join(root, 'broken.json');
   writeFileSync(brokenPath, '{ 这不是 JSON', 'utf8');
   check('readStore 对坏 JSON 返回空结构（不让面板崩）', readStore(brokenPath).skills.length === 0);
+  const stalePath = join(root, 'stale.json');
+  writeFileSync(stalePath, JSON.stringify({ version: 1, files: [{ file: 'x', size: 1, mtimeMs: 1, contributed: {} }], skills: [{ name: 'ghost', count: 9 }] }), 'utf8');
+  check('旧版 store（version 1）被整份丢弃，强制全量重扫', readStore(stalePath).files.length === 0 && readStore(stalePath).skills.length === 0);
   check('readStore 能读回刚写的 store', readStore(storePath).skills.length >= 3, String(readStore(storePath).skills.length));
 
   // ---- 11. 空态：一个调用都没有的新机器 -----------------------------------
