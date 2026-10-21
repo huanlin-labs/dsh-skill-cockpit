@@ -610,8 +610,9 @@ check(
     !clientCode.includes('::placeholder{opacity:.45}'),
 );
 check(
-  '⚡ 搜索与新建分组同处一条工具条（不再上下堆三行）',
-  clientCode.includes('.cockpit-search{') && clientCode.includes("className: 'cockpit-toolbar'"),
+  '⚡ 搜索独占一行、新建分组另起一行右对齐（一行挤不下）',
+  clientCode.includes('.cockpit-search{position:relative;flex:1 1 100%') &&
+    clientCode.includes('.cockpit-newgroup{display:flex;align-items:center;gap:8px;margin:0;flex:1 1 100%;justify-content:flex-end}'),
 );
 check(
   '每个 var(--dsw-*) 都带 fallback（正则扫 var(...) 无第二参数即失败）',
