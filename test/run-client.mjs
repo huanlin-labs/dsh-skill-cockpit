@@ -756,6 +756,87 @@ writeFileSync(
 );
 console.log(`\n报告已写：${join(reportDir, 'client-report.json')}`);
 
+// ---- 跨面板同步（2026-10-21）：两处面板必须共享同一份分组快照 ----------------
+// 现场：右栏标签与主界面各 mount 一份 SkillPanel。原来各自 useState(readGroupState)，
+// 在右栏把 canvas-design 拖进「文档办公」，主界面还是 5 个（户主 2026-10-21 实测）。
+// 这里把 lib/client.js 里那段存储总线原样切出来跑，验它真的会广播 —— 不靠"看代码像对"。
+{
+  const start = clientSource.indexOf('const groupListeners = new Set()');
+  const end = clientSource.indexOf('function tagsOf(');
+  const blockSrc = start !== -1 && end > start ? clientSource.slice(start, end) : '';
+  check('跨面板总线存在（分组快照 + 技能变更两路）', blockSrc !== '' && blockSrc.includes('function emitSkillsChanged'));
+  check(
+    '每个面板不再各自读一份 localStorage（旧写法已消失）',
+    /^\s*const \[groupStateRaw, setGroupStateRaw\] = useState\(groupSnapshot\)/m.test(clientSource) &&
+      !/^\s*const \[groupStateRaw, setGroupStateRaw\] = useState\(readGroupState\)/m.test(clientSource),
+  );
+  check(
+    '四处分组写入全部走共享 store',
+    (clientSource.match(/writeGroupStore\(\(prev\) =>/g) || []).length === 4,
+    String((clientSource.match(/writeGroupStore\(\(prev\) =>/g) || []).length),
+  );
+  check(
+    '四处技能写入都广播（开关 / 整组开关 / 四态 / 整组四态）',
+    (clientSource.match(/emitSkillsChanged\(mountToken\)/g) || []).length === 4,
+    String((clientSource.match(/emitSkillsChanged\(mountToken\)/g) || []).length),
+  );
+
+  // 把总线跑起来：假 localStorage + 假 window（能收 storage 事件）
+  const makeBus = () => {
+    const store = new Map();
+    const win = { handlers: [], addEventListener(type, fn) { if (type === 'storage') this.handlers.push(fn) } };
+    const readGroupState = () => {
+      const raw = store.get('k');
+      return raw ? JSON.parse(raw) : { groups: [], assign: {} };
+    };
+    const writeGroupState = (state) => store.set('k', JSON.stringify(state));
+    const factory = new Function(
+      'GROUPS_KEY',
+      'readGroupState',
+      'writeGroupState',
+      'window',
+      `${blockSrc}\nreturn { groupSnapshot, writeGroupStore, subscribeGroup, emitSkillsChanged, subscribeSkills }`,
+    );
+    return { api: factory('k', readGroupState, writeGroupState, win), win, store };
+  };
+
+  const { api, win, store } = makeBus();
+  const seenA = [];
+  const seenB = [];
+  const stopA = api.subscribeGroup((s) => seenA.push(s));
+  api.subscribeGroup((s) => seenB.push(s));
+  api.writeGroupStore((prev) => ({ groups: prev.groups, assign: Object.assign({}, prev.assign, { doc: ['canvas-design'] }) }));
+  check(
+    '一处加进分组：两处面板都收到同一份新快照',
+    seenA.length === 1 && seenB.length === 1 && seenB[0].assign.doc[0] === 'canvas-design',
+  );
+
+  api.writeGroupStore((prev) => ({ groups: prev.groups, assign: Object.assign({}, prev.assign, { design: ['canvas-design'] }) }));
+  check(
+    '第二次写入基于共享快照（不会把上一次的归属丢掉）',
+    Boolean(seenA[1].assign.doc && seenA[1].assign.design),
+  );
+
+  stopA();
+  const before = seenA.length;
+  api.writeGroupStore((prev) => ({ groups: prev.groups.concat([{ id: 'u1', label: '测试组' }]), assign: prev.assign }));
+  check('取消订阅后不再收（卸载的面板不残留）', seenA.length === before && seenB.length === 3);
+
+  const origins = [];
+  api.subscribeSkills((origin) => origins.push(origin));
+  const tokenA = {};
+  const tokenB = {};
+  api.emitSkillsChanged(tokenA);
+  check('技能变更广播带 origin（发起方据此跳过自己那次重拉）', origins.length === 1 && origins[0] === tokenA && tokenA !== tokenB);
+
+  store.set('k', JSON.stringify({ groups: [], assign: { doc: ['pdf'] } }));
+  for (const fn of win.handlers) fn({ key: 'k' });
+  check(
+    '别的窗口改了 localStorage → 本窗口收到 storage 事件后重读并广播',
+    seenB[seenB.length - 1].assign.doc[0] === 'pdf',
+  );
+}
+
 const failed = checks.filter((c2) => !c2.ok);
 console.log(`\n=== 客户端自测：${checks.length - failed.length}/${checks.length} 通过 ===`);
 process.exit(failed.length === 0 ? 0 : 1);
