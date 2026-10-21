@@ -1,14 +1,23 @@
 # dsh-skill-cockpit
 
-> **Status: v0.6.8 — works end-to-end on a real desktop install.**
-> 6/6 self-test suites · **287 assertions**, all green, and CI runs the same suites on every push.
-> Published as `dsh-skill-cockpit`: **npm currently carries 0.2.3**, and this 0.6.7 is the next
-> release. (The bare name `dsh-skill-panel` belongs to a different author.) Screenshots are being
-> retaken for 0.6.7 — see [Screenshots](#screenshots).
+[![npm](https://img.shields.io/npm/v/dsh-skill-cockpit?color=cb3837&label=npm)](https://www.npmjs.com/package/dsh-skill-cockpit)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![tests](https://img.shields.io/badge/tests-351%20assertions%20%C2%B7%207%2F7%20suites-brightgreen)](test)
+
+> **v0.6.9 — runs end-to-end on a real desktop install.**
+> 7/7 self-test suites · **351 assertions**, all green.
+> Published as [`dsh-skill-cockpit`](https://www.npmjs.com/package/dsh-skill-cockpit); npm `latest` = **0.6.9**.
+> (The bare name `dsh-skill-panel` belongs to a different author.)
 
 A **skill cockpit for [DSH](https://github.com/deepseek-ai)** (DeepSeek Harness): one page in the
 app-level navigation that shows every skill the machine actually exposes, says **why** a skill is
 missing, and lets you toggle a single skill without editing anything but its entry-file name.
+
+```bash
+npm i dsh-skill-cockpit          # or install it as a DSH bundle via the plugin manager
+```
+
+Restart DSH after installing; the page sits in the left nav between **Plugins** and **Schedule**.
 
 [中文说明](README.zh.md)
 
@@ -26,8 +35,10 @@ missing, and lets you toggle a single skill without editing anything but its ent
   `dropped:unclosed`, `dropped:bad-yaml`, `dropped:missing-fields`, `dropped:bad-name`), plus a
   missing root, a shadowed entry, or an explicit error — instead of showing nothing.
 - **It also answers "is anything using this skill?"** The session logs record every skill
-  invocation. The cockpit reads them and counts — which is how it can say, out loud, that on this
-  machine **104 sessions went by with 0 skill invocations**: everything installed is dormant.
+  invocation as a `tool-call` block (`name: "skill"`, argument `arguments.name`), and the cockpit
+  reads them and counts. 0.6.9 fixed a detector that only recognised an older
+  `skill-invocation` shape — which made every count read zero; re-scanning 113 existing sessions
+  surfaced real usage (e.g. `ui-design` ×8, `git-workflow` ×4).
   Counts live in `<dshHome>/dsh-skill-cockpit/usage.json` (skill names, counts, timestamps only —
   never message text).
 - **"Loads, but earns nothing" checks.** Four kinds of technically-valid skill that a model will
