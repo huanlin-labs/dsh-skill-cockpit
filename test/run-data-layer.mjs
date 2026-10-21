@@ -19,6 +19,7 @@
 import { readdirSync, statSync, existsSync, writeFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { normalizePreset, planPreset, countPresetWrites } from '../lib/presets.js';
 import { applyModeToText } from '../lib/frontmatter.js';
 import { scanSkills } from '../lib/scan.js';
 import { resolveRoots } from '../lib/roots.js';
@@ -200,6 +201,40 @@ check('on 之后 frontmatter 仍闭合', backToOn.text.startsWith('---\n') && ba
 
 const bogus = applyModeToText(baseRaw, 'half-on');
 check('未知态被拒绝', typeof bogus.error === 'string');
+// ---- 预设技能组：纯函数（只算，不写盘） ------------------------------------
+const badPreset = normalizePreset({ name: '  ' });
+check('预设没有名字时拒绝', typeof badPreset.error === 'string');
+
+const dupPreset = normalizePreset({
+  id: 'p1',
+  name: '写作',
+  items: [
+    { filePath: 'A/SKILL.md', mode: 'on' },
+    { filePath: 'A/SKILL.md', mode: 'off' },
+    { filePath: 'B/SKILL.md', mode: 'nonsense' },
+  ],
+});
+check('预设按 filePath 去重（重复项只留第一条）', dupPreset.items.length === 2, JSON.stringify(dupPreset.items));
+check('认不出的 mode 回落为 on', dupPreset.items[1].mode === 'on', dupPreset.items[1].mode);
+
+const fakeSkills = [
+  { filePath: 'A/SKILL.md', name: '甲', mode: 'off', writable: true },
+  { filePath: 'B/SKILL.md', name: '乙', mode: 'on', writable: true },
+  { filePath: 'C/SKILL.md', name: '丙', mode: 'on', writable: false },
+];
+const plan = planPreset(dupPreset, fakeSkills);
+check('要改的只有状态不同的那一个', plan.steps.length === 1 && plan.steps[0].name === '甲', JSON.stringify(plan.steps));
+check('已经是目标态的不算一步（计入 unchanged）', plan.unchanged === 1, String(plan.unchanged));
+check('去重后 A、B 都存在，missing 为空', plan.missing.length === 0, JSON.stringify(plan.missing));
+
+const blockedPreset = normalizePreset({ name: 'x', items: [{ filePath: 'C/SKILL.md', mode: 'off' }] });
+const blockedPlan = planPreset(blockedPreset, fakeSkills);
+check('不可写（provider / 只读根）的技能被挡下，不产生写步骤', blockedPlan.blocked.length === 1 && blockedPlan.steps.length === 0);
+
+const exclPreset = normalizePreset({ name: '专一', scope: 'exclusive', items: [{ filePath: 'A/SKILL.md', mode: 'on' }] });
+const exclPlan = planPreset(exclPreset, fakeSkills);
+check('exclusive 模式下清单外、可写、开着的技能要关掉（乙；丙不可写被跳过）', exclPlan.exclusiveOff.length === 1 && exclPlan.exclusiveOff[0].name === '乙', JSON.stringify(exclPlan.exclusiveOff));
+check('写盘总数 = 清单内改动(甲) + 清单外关闭(乙) = 2', countPresetWrites(exclPlan) === 2, String(countPresetWrites(exclPlan)));
 const failed = checks.filter((c) => !c.ok);
 console.log(`\n=== 数据层自测：${checks.length - failed.length}/${checks.length} 通过 ===`);
 process.exit(failed.length === 0 ? 0 : 1);
