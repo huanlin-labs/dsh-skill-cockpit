@@ -4,6 +4,25 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.9] — 2026-10-21
+
+### Fixed
+
+- **The usage page reported zero skill calls on this host.** The reader only accepted an object
+  shaped `source: { kind: 'skill-invocation', name }`, but the runtime records a skill call as a
+  content block `{ "type": "tool-call", "name": "skill", "arguments": "{\"name\":\"<skill>\"}" }`
+  where `arguments` is a **JSON string**. Both shapes are accepted now; malformed `arguments`,
+  missing names and non-`skill` tools are ignored. Re-scanning 113 existing sessions surfaced
+  real usage (e.g. `ui-design` ×8, `git-workflow` ×4, `debugging` ×2) that was previously invisible.
+- Usage regression suite: 52 → 60 assertions (7/7 suites green).
+
+### Changed
+
+- Group page: the skill list gained a search box; the card layout was restored to the previously
+  accepted version after an intermediate experiment was rejected.
+- `documented`: CHANGELOG entries for 0.5.x–0.6.8 were never written; this release resumes the
+  record. Version numbers in `package.json` remain the source of truth.
+
 ## [0.4.0] — 2026-10-20
 
 Visual rework of the panel, driven by a source-level survey of the ecosystem's most-starred
