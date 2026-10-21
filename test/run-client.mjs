@@ -837,6 +837,56 @@ console.log(`\n报告已写：${join(reportDir, 'client-report.json')}`);
   );
 }
 
+// ---- 分组归属口径（2026-10-21 二次修）：列表页与分组页必须同算法 ----
+// 现场：分组页「文档办公」显示 6（canvas-design 带 ×，是手放的），列表页同组仍 5。
+// 真因：列表页的 tagsOf 只遍历自建组，基础组的手挂被丢掉。这里把 tagsOf 原样切出来跑。
+{
+  const from = clientSource.indexOf('const BASE_GROUPS = [');
+  const mid = clientSource.indexOf('function readGroupState(');
+  const tagsFrom = clientSource.indexOf('function tagsOf(');
+  const tagsTo = clientSource.indexOf('function groupText(');
+  const src =
+    from !== -1 && mid > from && tagsFrom !== -1 && tagsTo > tagsFrom
+      ? clientSource.slice(from, mid) + clientSource.slice(tagsFrom, tagsTo)
+      : '';
+  let tagsOf = null;
+  try {
+    tagsOf = src === '' ? null : new Function(`${src}\nreturn { tagsOf };`)().tagsOf;
+  } catch (err) {
+    tagsOf = null;
+  }
+  check('归类函数可独立运行（切出来能跑）', typeof tagsOf === 'function');
+
+  if (typeof tagsOf === 'function') {
+    const base = { name: 'canvas-design', description: '' };
+    const manualBase = tagsOf(base, { groups: [], assign: { doc: ['canvas-design'] } });
+    check(
+      '基础组手挂生效：canvas-design 同时在「设计」与「文档办公」',
+      manualBase.indexOf('doc') !== -1 && manualBase.indexOf('design') !== -1,
+      manualBase.join(','),
+    );
+
+    const custom = tagsOf(base, {
+      groups: [{ id: 'u1', label: '我的组' }],
+      assign: { u1: ['canvas-design'] },
+    });
+    check('自建组手挂照旧生效', custom.indexOf('u1') !== -1, custom.join(','));
+
+    const dup = tagsOf({ name: 'docx', description: '' }, { groups: [], assign: { doc: ['docx'] } });
+    check(
+      '本来就自动归到该组的技能不会记两次（不产生重复行）',
+      dup.filter((t) => t === 'doc').length === 1,
+      dup.join(','),
+    );
+
+    const none = tagsOf(
+      { name: 'zzz-not-a-skill', description: '' },
+      { groups: [], assign: { doc: ['docx'] } },
+    );
+    check('没被手挂的技能不会蹭进任何组', none.length === 0, none.join(','));
+  }
+}
+
 const failed = checks.filter((c2) => !c2.ok);
 console.log(`\n=== 客户端自测：${checks.length - failed.length}/${checks.length} 通过 ===`);
 process.exit(failed.length === 0 ? 0 : 1);
