@@ -20,7 +20,8 @@ import { readdirSync, statSync, existsSync, writeFileSync, mkdirSync, mkdtempSyn
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { normalizePreset, planPreset, countPresetWrites } from '../lib/presets.js';
-import { applyModeToText } from '../lib/frontmatter.js';
+import { validateSkillName, buildSkillFile } from '../lib/manage.js';
+import { applyModeToText, readFrontmatter } from '../lib/frontmatter.js';
 import { scanSkills } from '../lib/scan.js';
 import { resolveRoots } from '../lib/roots.js';
 
@@ -235,6 +236,25 @@ const exclPreset = normalizePreset({ name: '专一', scope: 'exclusive', items: 
 const exclPlan = planPreset(exclPreset, fakeSkills);
 check('exclusive 模式下清单外、可写、开着的技能要关掉（乙；丙不可写被跳过）', exclPlan.exclusiveOff.length === 1 && exclPlan.exclusiveOff[0].name === '乙', JSON.stringify(exclPlan.exclusiveOff));
 check('写盘总数 = 清单内改动(甲) + 清单外关闭(乙) = 2', countPresetWrites(exclPlan) === 2, String(countPresetWrites(exclPlan)));
+// ---- 管理：名字校验 + 模板生成（纯函数，不落盘） ---------------------------
+check('名字带中文时拒绝并说明原因', validateSkillName('写作助手').ok === false);
+check('名字带中文的报错里点出"只能用 a-z 0-9 -"', /a-z/.test(validateSkillName('写作助手').error || ''));
+check('大写名字被拒', validateSkillName('Code-Review').ok === false);
+check('合法名字通过', validateSkillName('code-review').value === 'code-review', JSON.stringify(validateSkillName('code-review')));
+
+const tooShort = buildSkillFile({ name: 'x1', description: '短', body: '正文' });
+check('简介太短时整份不生成', typeof tooShort.error === 'string', JSON.stringify(tooShort));
+
+const built = buildSkillFile({
+  name: 'writing-helper',
+  description: '帮我把草稿改成更短的版本，保留原意。',
+  whenToUse: '当我说"帮我缩短这段"时用',
+  body: '# 用法\n\n把草稿贴进来，我按段删冗余。',
+});
+check('合法输入能生成文本', typeof built.text === 'string');
+const roundTrip = built.text ? readFrontmatter(built.text) : null;
+check('生成的文本能被自己的解析器读回来（name 一致）', roundTrip && roundTrip.data && roundTrip.data.name === 'writing-helper', JSON.stringify(roundTrip && roundTrip.data));
+check('生成的文本没有预置任何 disable-model-invocation', !/disable-model-invocation/.test(built.text || ''));
 const failed = checks.filter((c) => !c.ok);
 console.log(`\n=== 数据层自测：${checks.length - failed.length}/${checks.length} 通过 ===`);
 process.exit(failed.length === 0 ? 0 : 1);
