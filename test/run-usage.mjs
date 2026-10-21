@@ -195,6 +195,43 @@ try {
   );
   check('没有 time 字段时不编造 lastAt', collectInvocations([{ seq: 1, source: { kind: 'skill-invocation', name: 'no-time' } }])[0].lastAt === undefined);
 
+  // ---- 4b. 宿主实际写法：content 里的 tool-call(name='skill') ---------------
+  // 2026-10-21 实测：真实调用长这样，0.6.8 只认 kind='skill-invocation' 所以永远数不到。
+  const toolCall = (seq, time, args) => ({
+    seq,
+    time,
+    type: 'assistant/message',
+    data: {
+      message: {
+        content: [
+          { type: 'reasoning', text: 'think' },
+          { type: 'tool-call', id: `call_${seq}`, name: 'skill', arguments: args },
+        ],
+      },
+    },
+  });
+  const oneCall = collectInvocations([toolCall(1, 1000, JSON.stringify({ name: 'debugging' }))]);
+  check('识别 tool-call 形态的技能调用', oneCall[0]?.name === 'debugging', JSON.stringify(oneCall));
+  check('tool-call 形态只算 1 次', oneCall[0]?.count === 1, String(oneCall[0]?.count));
+  check('tool-call 形态带上 lastAt', oneCall[0]?.lastAt === 1000, String(oneCall[0]?.lastAt));
+  check(
+    'arguments 已是对象（非字符串）也能识别',
+    collectInvocations([toolCall(1, 1, { name: 'code-review' })])[0]?.name === 'code-review',
+  );
+  check(
+    '非 skill 的 tool-call 不计入',
+    collectInvocations([toolCall(1, 1, JSON.stringify({ file_path: 'x' }))].map((e) => {
+      e.data.message.content[1].name = 'read';
+      return e;
+    })).length === 0,
+  );
+  check('skill 的 arguments 是坏 JSON 时不计入', collectInvocations([toolCall(1, 1, '{oops')]).length === 0);
+  check('arguments 缺 name 时不计入', collectInvocations([toolCall(1, 1, JSON.stringify({ foo: 1 }))]).length === 0);
+  check(
+    '两种形态并存时都计入',
+    collectInvocations([invocation(1, 10, 'debugging'), toolCall(2, 20, JSON.stringify({ name: 'debugging' }))])[0]?.count === 2,
+  );
+
   // ---- 5. refreshUsage：首次全扫 ------------------------------------------
   let nowValue = 1_700_000_000_000;
   const first = refreshUsage({ dshHome, storePath, now: () => nowValue });
