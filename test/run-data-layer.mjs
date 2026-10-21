@@ -19,6 +19,7 @@
 import { readdirSync, statSync, existsSync, writeFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { applyModeToText } from '../lib/frontmatter.js';
 import { scanSkills } from '../lib/scan.js';
 import { resolveRoots } from '../lib/roots.js';
 
@@ -181,6 +182,24 @@ mkdirSync(reportDir, { recursive: true });
 writeFileSync(join(reportDir, 'data-layer-report.json'), JSON.stringify({ report, checks, fixture, ghost }, null, 2));
 console.log(`\n报告已写：${join(reportDir, 'data-layer-report.json')}`);
 
+// ---- 四态写入：纯函数（只验文本变换，不碰磁盘） ----------------------------
+const baseRaw = ['---', 'name: demo', 'description: 演示技能', '---', '', '# 正文', '保持不变'].join('\n');
+
+const toUserOnly = applyModeToText(baseRaw, 'user-only');
+check('user-only 写入 disable-model-invocation: true', toUserOnly.text.includes('disable-model-invocation: true'));
+check('user-only 不动正文与其他键', toUserOnly.text.includes('# 正文') && toUserOnly.text.includes('description: 演示技能'));
+const againUserOnly = applyModeToText(toUserOnly.text, 'user-only');
+check('user-only 幂等（套两次结果相同）', againUserOnly.text === toUserOnly.text);
+
+const toModelOnly = applyModeToText(toUserOnly.text, 'model-only');
+check('model-only 只留 user-invocable: false', toModelOnly.text.includes('user-invocable: false') && !toModelOnly.text.includes('disable-model-invocation'));
+
+const backToOn = applyModeToText(toModelOnly.text, 'on');
+check('on 把两个键都清掉', !backToOn.text.includes('user-invocable') && !backToOn.text.includes('disable-model-invocation'));
+check('on 之后 frontmatter 仍闭合', backToOn.text.startsWith('---\n') && backToOn.text.includes('\n---\n'));
+
+const bogus = applyModeToText(baseRaw, 'half-on');
+check('未知态被拒绝', typeof bogus.error === 'string');
 const failed = checks.filter((c) => !c.ok);
 console.log(`\n=== 数据层自测：${checks.length - failed.length}/${checks.length} 通过 ===`);
 process.exit(failed.length === 0 ? 0 : 1);
