@@ -4,6 +4,12 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.12] — 2026-10-21
+
+### Changed
+
+- npm keywords now carry the DSH discovery set: dsh, dsh-plugin, dsh-bundle, deepseek-harness, cordis, skills, skill-manager, panellist, skill-cockpit. GitHub topics carry the same core set. No code change.
+
 ## [0.6.11] — 2026-10-21
 
 ### Fixed
