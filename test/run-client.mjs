@@ -620,9 +620,10 @@ check(
     !clientCode.includes(',.cockpit-switch{display:none!important}'),
 );
 check(
-  '整组开关仍在（分组头那颗开关一度被上面那条 CSS 一起隐藏了）',
-  (clientCode.match(/className: 'cockpit-switch'/g) ?? []).length >= 2,
-  String((clientCode.match(/className: 'cockpit-switch'/g) ?? []).length),
+  '整组控制是四档（列表视图分组头 = cockpit-seg，四档都带 data-group-mode）',
+  clientCode.includes("'data-dsh-group-switch': gid") &&
+    clientCode.includes("'data-group-mode': m") &&
+    clientCode.includes('groupUniformMode(members)'),
 );
 check(
   '每个 var(--dsw-*) 都带 fallback（正则扫 var(...) 无第二参数即失败）',
