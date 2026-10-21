@@ -605,6 +605,15 @@ check(
   !clientCode.includes('--dsw-color-'),
 );
 check(
+  '⚡ 搜索框占位文字不再靠 45% 透明度（那在灰底上会糊成一片）',
+  clientCode.includes('.cockpit-input::placeholder{color:inherit;opacity:.6}') &&
+    !clientCode.includes('::placeholder{opacity:.45}'),
+);
+check(
+  '⚡ 搜索与新建分组同处一条工具条（不再上下堆三行）',
+  clientCode.includes('.cockpit-search{') && clientCode.includes("className: 'cockpit-toolbar'"),
+);
+check(
   '每个 var(--dsw-*) 都带 fallback（正则扫 var(...) 无第二参数即失败）',
   !/var\(\s*--[a-zA-Z0-9-]+\s*\)/.test(clientCode),
   (clientCode.match(/var\(\s*--[a-zA-Z0-9-]+\s*\)/g) ?? []).join(' '),
