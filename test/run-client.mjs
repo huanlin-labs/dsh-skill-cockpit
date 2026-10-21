@@ -615,6 +615,16 @@ check(
     clientCode.includes('.cockpit-newgroup{display:flex;align-items:center;gap:8px;margin:0;flex:1 1 100%;justify-content:flex-end}'),
 );
 check(
+  '⚡ 只隐藏行内的旧开关，不连坐整组开关（用 [data-dsh-skill-toggle] 精准选择）',
+  clientCode.includes('[data-dsh-skill-toggle]{display:none!important}') &&
+    !clientCode.includes(',.cockpit-switch{display:none!important}'),
+);
+check(
+  '整组开关仍在（分组头那颗开关一度被上面那条 CSS 一起隐藏了）',
+  (clientCode.match(/className: 'cockpit-switch'/g) ?? []).length >= 2,
+  String((clientCode.match(/className: 'cockpit-switch'/g) ?? []).length),
+);
+check(
   '每个 var(--dsw-*) 都带 fallback（正则扫 var(...) 无第二参数即失败）',
   !/var\(\s*--[a-zA-Z0-9-]+\s*\)/.test(clientCode),
   (clientCode.match(/var\(\s*--[a-zA-Z0-9-]+\s*\)/g) ?? []).join(' '),
