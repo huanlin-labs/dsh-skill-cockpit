@@ -887,6 +887,20 @@ console.log(`\n报告已写：${join(reportDir, 'client-report.json')}`);
   }
 }
 
+// ---- 分组页左栏搜索（2026-10-21）：31 个技能一列排下来找不动 ----
+{
+  check('分组页左栏有搜索框（带稳定 data 钩子）', clientSource.includes("'data-dsh-group-search': '1'"));
+  check(
+    '左栏候选列表走筛后集合，不再是全量直出',
+    clientSource.includes('visibleSkills.map((skill) =>') && !clientSource.includes('props.skills.map((skill) =>'),
+  );
+  check(
+    '搜索框文案中英各一份',
+    clientSource.includes("'groups.searchPlaceholder': '搜技能名或描述…'") &&
+      clientSource.includes("'groups.searchPlaceholder': 'Search skills…'"),
+  );
+}
+
 const failed = checks.filter((c2) => !c2.ok);
 console.log(`\n=== 客户端自测：${checks.length - failed.length}/${checks.length} 通过 ===`);
 process.exit(failed.length === 0 ? 0 : 1);
