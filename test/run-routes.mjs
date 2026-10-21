@@ -109,10 +109,15 @@ apply(ctx, {
 
 check('导出 name = dsh-skill-cockpit', name === 'dsh-skill-cockpit', name);
 check('inject 为空数组（不猜、不探服务）', Array.isArray(inject) && inject.length === 0, JSON.stringify(inject));
-check('注册了 8 条路由', registered.length === 8, registered.map((r) => r.path).join(' '));
+check('注册了 9 条路由', registered.length === 9, registered.map((r) => r.path).join(' '));
 check(
   '四态路由 /mode 已注册',
   registered.some((r) => r.path === '/__dsh-skill-panel/mode'),
+  registered.map((r) => r.path).join(' '),
+);
+check(
+  '预设预览路由 /preset/plan 已注册',
+  registered.some((r) => r.path === '/__dsh-skill-panel/preset/plan'),
   registered.map((r) => r.path).join(' '),
 );
 check('每条路由都是 kind=exact', registered.every((r) => r.kind === 'exact'));
