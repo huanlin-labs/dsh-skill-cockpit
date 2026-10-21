@@ -22,6 +22,7 @@ const suites = [
   // 0.3.0: usage reading (multi-frame zstd) and the "loads but earns nothing" checks.
   ['用量', join(import.meta.dirname, 'run-usage.mjs')],
   ['诊断', join(import.meta.dirname, 'run-checks.mjs')],
+  ['四态', join(import.meta.dirname, 'run-mode.mjs')],
 ];
 
 const results = [];
