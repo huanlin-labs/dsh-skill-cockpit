@@ -109,7 +109,12 @@ apply(ctx, {
 
 check('导出 name = dsh-skill-cockpit', name === 'dsh-skill-cockpit', name);
 check('inject 为空数组（不猜、不探服务）', Array.isArray(inject) && inject.length === 0, JSON.stringify(inject));
-check('注册了 7 条路由', registered.length === 7, registered.map((r) => r.path).join(' '));
+check('注册了 8 条路由', registered.length === 8, registered.map((r) => r.path).join(' '));
+check(
+  '四态路由 /mode 已注册',
+  registered.some((r) => r.path === '/__dsh-skill-panel/mode'),
+  registered.map((r) => r.path).join(' '),
+);
 check('每条路由都是 kind=exact', registered.every((r) => r.kind === 'exact'));
 check('只通过 ctx.get 访问 ctx 服务', log.every((entry) => entry.startsWith("ctx.get('webServer')")), log.join(' '));
 
