@@ -4,6 +4,18 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.10] — 2026-10-21
+
+### Documentation
+
+- README first screen rewritten with real numbers (v0.6.10 · 7/7 suites · 351 assertions · npm
+  `latest`), npm / license / tests badges, and an install block. The stale "npm carries 0.2.3 /
+  6 suites / 287 assertions" status is gone.
+- Corrected a false claim carried over from 0.6.8: "104 sessions with 0 skill invocations" was the
+  broken detector talking, not reality. The usage bullet now describes the real signal and the
+  numbers a re-scan of 113 sessions produced.
+- No code changes in this release — documentation only.
+
 ## [0.6.9] — 2026-10-21
 
 ### Fixed

@@ -4,9 +4,9 @@
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![tests](https://img.shields.io/badge/tests-351%20assertions%20%C2%B7%207%2F7%20suites-brightgreen)](test)
 
-> **v0.6.9 — runs end-to-end on a real desktop install.**
+> **v0.6.10 — runs end-to-end on a real desktop install.**
 > 7/7 self-test suites · **351 assertions**, all green.
-> Published as [`dsh-skill-cockpit`](https://www.npmjs.com/package/dsh-skill-cockpit); npm `latest` = **0.6.9**.
+> Published as [`dsh-skill-cockpit`](https://www.npmjs.com/package/dsh-skill-cockpit); npm `latest` = **0.6.10**.
 > (The bare name `dsh-skill-panel` belongs to a different author.)
 
 A **skill cockpit for [DSH](https://github.com/deepseek-ai)** (DeepSeek Harness): one page in the
