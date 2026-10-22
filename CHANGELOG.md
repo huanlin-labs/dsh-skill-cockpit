@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.27] — 2026-10-22
+
+### Fixed
+
+- The sticky source column let go near the bottom of the page: `position: sticky` is only pinned
+  until its containing block ends, and the board ends before the page does. The groups page is now
+  an app shell — the page itself does not scroll, the group area does. The source column and the
+  footer note stay in place for the whole scroll, and the source list keeps its own scrollbar.
+
 ## [0.6.26] — 2026-10-22
 
 ### Changed

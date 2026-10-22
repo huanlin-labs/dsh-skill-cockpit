@@ -615,9 +615,9 @@ check(
     clientCode.includes('.cockpit-newgroup{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0;flex:1 1 100%;justify-content:flex-start}'),
 );
 check(
-  '⚡ 左栏吸顶（0.6.26）：页面滚动时源列表仍可见，拖到下方组不用来回滚',
-  clientCode.includes('.cockpit-pane{display:flex;flex-direction:column;gap:10px;min-width:0;padding:0;position:sticky;top:8px;align-self:start;max-height:calc(100vh - 24px)}') &&
-    clientCode.includes('.cockpit-pane-list{display:flex;flex-direction:column;gap:6px;padding:10px 0;flex:1 1 auto;min-height:0;overflow:auto;'),
+  '⚡ 分组页只滚右栏（0.6.27）：左栏与底部说明常驻，sticky 到底会松手所以改成应用外壳',
+  clientCode.includes("[data-dsh-view-panel='groups']{flex:1 1 auto;min-height:0;overflow:hidden}") &&
+    clientCode.includes("[data-dsh-view-panel='groups'] .cockpit-groups{height:100%;min-height:0;overflow:auto;") &&
 );
 check(
   '⚡ 组卡头会换行，组名框按文字自适应（数字紧贴名字，0.6.25）',
