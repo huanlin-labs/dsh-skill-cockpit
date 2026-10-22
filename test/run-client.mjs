@@ -617,7 +617,7 @@ check(
 check(
   '⚡ 分组页只滚右栏（0.6.27）：左栏与底部说明常驻，sticky 到底会松手所以改成应用外壳',
   clientCode.includes("[data-dsh-view-panel='groups']{flex:1 1 auto;min-height:0;overflow:hidden}") &&
-    clientCode.includes("[data-dsh-view-panel='groups'] .cockpit-groups{height:100%;min-height:0;overflow:auto;") &&
+    clientCode.includes("[data-dsh-view-panel='groups'] .cockpit-groups{height:100%;min-height:0;overflow:auto;"),
 );
 check(
   '⚡ 组卡头会换行，组名框按文字自适应（数字紧贴名字，0.6.25）',
