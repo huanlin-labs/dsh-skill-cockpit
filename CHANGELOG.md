@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.16] — 2026-10-22
+
+### Fixed
+
+- The ungrouped row's "add to group" control is now drawn inline instead of as an
+  absolutely positioned popup. The group card has a fixed height and `overflow:hidden`,
+  so the popup was clipped at the card edge (visible as a black sliver). Chips sit in
+  normal flow and can never be cut off.
+
 ## [0.6.15] — 2026-10-22
 
 ### Changed
