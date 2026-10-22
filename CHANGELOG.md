@@ -4,6 +4,16 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.30] — 2026-10-22
+
+### Fixed
+
+- Dragging a skill could only reach the groups that were already on screen: while an HTML5 drag
+  is in flight the browser refuses to scroll on the wheel. The groups page now scrolls itself
+  while you drag — bring the pointer near the top or bottom edge and the page follows, faster the
+  closer you get, and it stops as soon as the drop happens or the drag is cancelled. Nothing else
+  about dragging changed.
+
 ## [0.6.29] — 2026-10-22
 
 ### Fixed
