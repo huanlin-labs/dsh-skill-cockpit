@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.21] — 2026-10-22
+
+### Fixed
+
+- The left "All skills" column now accepts drops. Dragging a card out of a group and
+  dropping it on the left column removes it from that group (the left column lists every
+  skill, so there is nothing to "add" to). Before this, the column was drag-source only and
+  the card snapped back.
+
 ## [0.6.20] — 2026-10-22
 
 ### Changed
