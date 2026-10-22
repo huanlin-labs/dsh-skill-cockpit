@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.32] — 2026-10-22
+
+### Fixed
+
+- The × on a skill card did nothing: the new pointer drag started even when the press began on the button,
+  so the drop handler swallowed the click. A drag now never starts from a control inside the card, and dropping
+  onto the group the skill already sits in is a no-op.
+
 ## [0.6.31] — 2026-10-22
 
 ### Changed
