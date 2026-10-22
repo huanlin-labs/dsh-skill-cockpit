@@ -4,6 +4,16 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.24] — 2026-10-22
+
+### Changed
+
+- Group boxes are "fit content, capped" again instead of fully auto-height: a group with a few
+  skills shrinks to its content, and only a group that overflows the cap (48 vh / max 460 px) gets
+  an inner scrollbar. That keeps the board tidy without making every group a scroll trap — a short
+  group no longer swallows the wheel, and the page still scrolls normally everywhere else.
+- The left "All skills" column scrolls on its own again (max 70 vh), so the board stays compact.
+
 ## [0.6.23] — 2026-10-22
 
 ### Fixed
