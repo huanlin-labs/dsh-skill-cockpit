@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.17] — 2026-10-22
+
+### Removed
+
+- The per-row "add to group" control is gone entirely (button, chips and their CSS).
+  Grouping is done on the group page only: drag a row into a group box (the ungrouped
+  bucket included). Rows are shorter and no popup/inline list competes with the card.
+
 ## [0.6.16] — 2026-10-22
 
 ### Fixed
