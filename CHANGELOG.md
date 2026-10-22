@@ -4,6 +4,29 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.36] - 2026-10-23
+
+### Fixed
+
+- **技能下拉框在深色主题下白底白字.** A native `<select>` renders its popup with the OS widget style, so the
+  page theme cannot reach it. Replaced with a self-drawn dropdown (same CSS system as the rest of the panel),
+  which also brings a search box: type a name or a word from the description to filter the list.
+
+### Added
+
+- **每个技能都带中文说明**: both the mount menu and the already-mounted rows under a preset now show the
+  skill's `description` from its `SKILL.md`, so an English folder name is no longer the only thing to go on.
+  Same for the 用量 list — `/usage` now returns a `description` per skill (read from the skill definition,
+  never from conversations; the on-disk `usage.json` still holds only name / count / lastAt).
+- Preset rows carry the description too (`/presets` returns it for both the global pool and each mounted entry).
+
+### Verified
+
+- `npm test` 7/7. The usage privacy check now asserts the on-disk index stays three-field while the response
+  may add `description`; route self-test payload shows the field really flows through.
+- Dark-theme renders of the real CSS (`out-picker/presets.png`, `out-picker-closed/presets.png`): open menu with
+  search + descriptions, closed list with descriptions, all legible, no overflow.
+
 ## [0.6.35] - 2026-10-23
 
 ### Fixed

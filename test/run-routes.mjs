@@ -217,9 +217,27 @@ try {
     usage1.json?.storePath,
   );
   check('usage 索引文件真的生成了', existsSync(probeStore));
+  // 存到磁盘的索引仍然只有这三个字段（隐私契约管的是落盘，不是响应）
+  let storedRows = null;
+  try {
+    storedRows = JSON.parse(readFileSync(probeStore, 'utf8')).skills;
+  } catch {
+    storedRows = null;
+  }
   check(
-    'usage 索引里的技能行只有 name / count / lastAt',
-    (usage1.json?.skills ?? []).every((row) => Object.keys(row).every((key) => ['name', 'count', 'lastAt'].includes(key))),
+    'usage 索引文件里的技能行只有 name / count / lastAt',
+    Array.isArray(storedRows) &&
+      storedRows.length > 0 &&
+      storedRows.every((row) => Object.keys(row).every((key) => ['name', 'count', 'lastAt'].includes(key))),
+  );
+  // 响应可以多带一个技能说明（来自 SKILL.md，不是对话内容）
+  check(
+    'usage 响应附带技能说明（来源是 SKILL.md）',
+    (usage1.json?.skills ?? []).every(
+      (row) =>
+        Object.keys(row).every((key) => ['name', 'count', 'lastAt', 'description'].includes(key)) &&
+        typeof row.description === 'string',
+    ),
   );
   check('usage 明说不存对话内容', String(usage1.json?.privacy).includes('不存任何对话内容'), usage1.json?.privacy);
   check(
