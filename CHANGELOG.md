@@ -4,6 +4,16 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.31] — 2026-10-22
+
+### Changed
+
+- Edge auto-scroll is much slower (max 8 px/frame instead of 26), so the page no longer runs away from the pointer.
+- Dragging a skill no longer uses the browser's native drag — that is what blocked the wheel. It now follows the
+  pointer directly, so **the wheel scrolls the page during a drag** like on any ordinary page. A small ghost shows
+  what you are carrying, the group under the pointer gets an outline, dropping on the left column still removes the
+  skill from its group, and `Esc` cancels.
+
 ## [0.6.30] — 2026-10-22
 
 ### Fixed
