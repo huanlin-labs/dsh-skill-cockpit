@@ -4,6 +4,17 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.13] — 2026-10-22
+
+### Fixed
+
+- Group page: the per-row "Add to group" control was a native select. Its popup is drawn by
+  the OS, so on the dark theme it rendered white-on-white and the option list was unreadable;
+  clicks on it produced no visible result. Replaced with a self-drawn menu that uses the
+  Canvas / CanvasText system colours (they flip with color-scheme, so both themes stay
+  legible). Picking a group runs the same onAssign path, closes the menu at once, and the
+  row tag badge updates as visible feedback. Client-only change: no host restart, Ctrl+F5.
+
 ## [0.6.12] — 2026-10-21
 
 ### Changed
