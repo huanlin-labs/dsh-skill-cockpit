@@ -109,7 +109,7 @@ apply(ctx, {
 
 check('导出 name = dsh-skill-cockpit', name === 'dsh-skill-cockpit', name);
 check('inject 为空数组（不猜、不探服务）', Array.isArray(inject) && inject.length === 0, JSON.stringify(inject));
-check('注册了 13 条路由', registered.length === 13, registered.map((r) => r.path).join(' '));
+check('注册了 14 条路由', registered.length === 14, registered.map((r) => r.path).join(' '));
 check(
   '四态路由 /mode 已注册',
   registered.some((r) => r.path === '/__dsh-skill-panel/mode'),
@@ -186,7 +186,7 @@ async function hit(path, { method = 'GET', body, headers } = {}) {
 try {
   const ping = await hit(`${BASE}/ping`);
   check('GET ping → 200', ping.status === 200, String(ping.status));
-  check('ping 报出 10 条路由', Array.isArray(ping.json?.routes) && ping.json.routes.length === 10);
+  check('ping 报出 11 条路由', Array.isArray(ping.json?.routes) && ping.json.routes.length === 11);
   check('ping 报出未安装索引状态', Boolean(ping.json?.undeclaredIndex));
   check('ping 报出的版本与 package.json 一致', ping.json?.version === pkgVersion, `${ping.json?.version} vs ${pkgVersion}`);
 
@@ -420,6 +420,30 @@ try {
       existsSync(join(probeSkill, 'SKILL.md')),
     `${unmount.status} ${unmount.json?.error ?? ''}`,
   );
+
+  // 预设自带的真实目录：移出 = 搬到全局技能库，不删内容
+  const builtinDir = join(presetDir, 'skills', 'builtin-skill')
+  mkdirSync(builtinDir, { recursive: true })
+  writeFileSync(join(builtinDir, 'SKILL.md'), '---\nname: builtin-skill\ndescription: builtin\n---\nbody\n', 'utf8')
+
+  const detach = await hit(`${BASE}/presets/detach`, {
+    method: 'POST',
+    body: { presetId, skillName: 'builtin-skill' },
+  })
+  check(
+    'POST /presets/detach → 真实目录移到全局库',
+    detach.status === 200 &&
+      detach.json?.ok === true &&
+      !existsSync(builtinDir) &&
+      existsSync(join(probeHome, 'skills', 'builtin-skill', 'SKILL.md')),
+    `${detach.status} ${detach.json?.error ?? ''}`,
+  )
+
+  const detachLink = await hit(`${BASE}/presets/detach`, {
+    method: 'POST',
+    body: { presetId, skillName: 'route-probe' },
+  })
+  check('对链接调用 detach → 拒绝', detachLink.status === 400 && detachLink.json?.ok === false, detachLink.json?.error)
 
   const badId = await hit(`${BASE}/presets/mount`, {
     method: 'POST',

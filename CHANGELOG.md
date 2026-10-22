@@ -4,6 +4,31 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.35] - 2026-10-23
+
+### Fixed
+
+- **预设页在深色主题下什么都看不见.** The selected preset row and the "链接 / 预设自带" chips used
+  `--dsw-alias-bg-secondary` / `--dsw-alias-line-secondary` — tokens this host does not define — so the
+  light fallback (`#f4f5f6`) painted a near-white block and the inherited white text vanished. Every
+  style in this view now uses tokens the rest of the panel already relies on
+  (`--dsw-alias-interactive-bg-*`, `--dsw-alias-border-l2`, `--dsw-alias-label-*`) with translucent
+  grey fallbacks that read correctly on both themes, and the chips are outlined instead of filled.
+
+### Added
+
+- **预设自带的技能现在也能编辑**: a real folder inside a preset gets a 移出 button. It does not delete
+  anything — `POST /presets/detach` moves the folder into the global library (`~/.dsh/skills/<name>`)
+  and refuses when a same-named skill is already there, so the preset stops carrying it and the skill
+  stays available. Links keep using 摘掉, and calling detach on a link is refused with a pointer to 摘掉.
+
+### Verified
+
+- `npm test` 7/7; the route suite now covers detach (moves the real folder, refuses links) and the
+  route/ping counts moved to 14/11.
+- Dark-theme render of the real CSS + DOM (`out-presets-dark/presets.png`): selected row readable,
+  chips readable, 摘掉 / 移出 both legible, no overflow.
+
 ## [0.6.34] - 2026-10-23
 
 ### Added
