@@ -4,6 +4,17 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.28] — 2026-10-22
+
+### Fixed
+
+- Editing a group near the bottom of the board meant the skill list on the left had already
+  scrolled out of view, so there was no way to see what you were dragging. The left pane now
+  sticks to the top of the page scroller (`position: sticky; top: 8px; align-self: start`): the
+  page still scrolls exactly as before and the right board keeps flowing under it, while the
+  pane's inner list keeps its own 70 vh scroll. One rule changed; no other layout property was
+  touched.
+
 ## [0.6.25] — 2026-10-22
 
 ### Fixed
