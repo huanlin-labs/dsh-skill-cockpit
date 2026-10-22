@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.33] — 2026-10-22
+
+### Fixed
+
+- The × on a skill card now really removes the skill from its group. The button was wired to the *add*
+  handler with a stray third argument, so every click re-assigned the skill to the group it already sat in —
+  visually nothing happened. It calls the un-assign handler now.
+
 ## [0.6.32] — 2026-10-22
 
 ### Fixed
