@@ -4,6 +4,17 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.19] — 2026-10-22
+
+### Fixed
+
+- Group page, left column: the search box stuck out past the pane's right edge. Its own rule
+  said `width:auto` but the base `.cockpit-input` rule (further down the sheet, same
+  specificity) sets `width:100%`, so the box measured 100% **plus** its 24px of side margins
+  and overflowed by exactly that. The gutter is now declared once, as padding on
+  `.cockpit-pane`; the title bar, the search box and the skill cards all sit inside it and
+  share the same left and right edges, and no child declares a width or a side margin.
+
 ## [0.6.18] — 2026-10-22
 
 ### Fixed
