@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.26] — 2026-10-22
+
+### Changed
+
+- The left "all skills" column now sticks to the viewport while the group board scrolls: the page
+  scrolls the groups, and the source list stays visible next to them, so a skill can be dragged into
+  a group far down the page without scrolling the source out of sight. The list keeps its own
+  scrollbar, capped at the viewport height.
+
 ## [0.6.25] — 2026-10-22
 
 ### Fixed
