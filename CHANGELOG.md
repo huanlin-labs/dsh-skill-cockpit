@@ -4,6 +4,13 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.14] — 2026-10-22
+
+### Fixed
+
+- The group menu now closes when you click anywhere outside it, or press Escape.
+  Before, it stayed open until you picked an item or clicked its own trigger.
+
 ## [0.6.13] — 2026-10-22
 
 ### Fixed
