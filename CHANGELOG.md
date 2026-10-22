@@ -412,7 +412,7 @@ string fails the suite); 4. every `t('…')` key used in code exists in the dict
 
 ### Docs
 
-- **Corrected a false claim**: both READMEs said the plugin was *not on npm yet*. It is —`dsh-skill-cockpit@0.2.3` is published under this account (`zhaorui-wu`); 0.6.7 is the next release. Install sections now show 
+- **Corrected a false claim**: both READMEs said the plugin was *not on npm yet*. It is —`dsh-skill-cockpit@0.2.3` is published under this account (`huanlin-labs`); 0.6.7 is the next release. Install sections now show 
 pm install dsh-skill-cockpit and note the published version.
 - **Both READMEs brought up to 0.6.7.** They still described 0.3.x: no 分组 page, no tri-state
   group switch, stale suite counts (`274 assertions` / `4/4 套件 · 124 项`), and the Chinese one

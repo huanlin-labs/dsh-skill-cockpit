@@ -14,14 +14,14 @@
     "skill-cockpit"
   ],
   "license": "MIT",
-  "author": "zhaorui-wu",
+  "author": "huanlin-labs",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zhaorui-wu/dsh-skill-cockpit.git"
+    "url": "git+https://github.com/huanlin-labs/dsh-skill-cockpit.git"
   },
-  "homepage": "https://github.com/zhaorui-wu/dsh-skill-cockpit#readme",
+  "homepage": "https://github.com/huanlin-labs/dsh-skill-cockpit#readme",
   "bugs": {
-    "url": "https://github.com/zhaorui-wu/dsh-skill-cockpit/issues"
+    "url": "https://github.com/huanlin-labs/dsh-skill-cockpit/issues"
   },
   "type": "module",
   "main": "./lib/index.js",
