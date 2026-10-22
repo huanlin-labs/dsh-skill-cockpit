@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.15] — 2026-10-22
+
+### Changed
+
+- The per-row "Add to group" menu now appears only in the ungrouped bucket. Rows that
+  already sit in a group switch groups by dragging, so the control was duplicate clutter
+  there; the ungrouped bucket keeps it because that is the only manual entry point.
+
 ## [0.6.14] — 2026-10-22
 
 ### Fixed
