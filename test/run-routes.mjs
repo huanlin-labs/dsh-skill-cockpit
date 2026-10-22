@@ -13,7 +13,7 @@
  *     a test run) and the second call skips unchanged logs.
  */
 
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync, existsSync, readFileSync, lstatSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { zstdCompressSync } from 'node:zlib';
@@ -109,7 +109,7 @@ apply(ctx, {
 
 check('导出 name = dsh-skill-cockpit', name === 'dsh-skill-cockpit', name);
 check('inject 为空数组（不猜、不探服务）', Array.isArray(inject) && inject.length === 0, JSON.stringify(inject));
-check('注册了 10 条路由', registered.length === 10, registered.map((r) => r.path).join(' '));
+check('注册了 13 条路由', registered.length === 13, registered.map((r) => r.path).join(' '));
 check(
   '四态路由 /mode 已注册',
   registered.some((r) => r.path === '/__dsh-skill-panel/mode'),
@@ -186,7 +186,7 @@ async function hit(path, { method = 'GET', body, headers } = {}) {
 try {
   const ping = await hit(`${BASE}/ping`);
   check('GET ping → 200', ping.status === 200, String(ping.status));
-  check('ping 报出 7 条路由', Array.isArray(ping.json?.routes) && ping.json.routes.length === 7);
+  check('ping 报出 10 条路由', Array.isArray(ping.json?.routes) && ping.json.routes.length === 10);
   check('ping 报出未安装索引状态', Boolean(ping.json?.undeclaredIndex));
   check('ping 报出的版本与 package.json 一致', ping.json?.version === pkgVersion, `${ping.json?.version} vs ${pkgVersion}`);
 
@@ -372,6 +372,70 @@ try {
     body: { filePath: join(probeSkill, 'SKILL.md.disabled'), disable: false, cwd: probeRoot },
   });
   check('再点一次恢复原名（applied + 名字回来）', toggleBack.status === 200 && existsSync(join(probeSkill, 'SKILL.md')), String(toggleBack.status));
+  // ---- 预设页：列 / 挂 / 卸的闭环（0.6.34）---------------------------------
+  const presetId = 'route-preset';
+  const presetDir = join(probeHome, '.agent-presets', presetId);
+  mkdirSync(join(presetDir, 'skills'), { recursive: true });
+  writeFileSync(join(presetDir, 'preset.yml'), 'name: 路由预设\ndescription: 测试\norder: 1\n', 'utf8');
+
+  const list0 = await hit(`${BASE}/presets`);
+  check(
+    'GET /presets → 200 且列出预设与全局技能库',
+    list0.status === 200 &&
+      list0.json?.presets?.length === 1 &&
+      list0.json?.pool?.some((row) => row.name === 'route-probe'),
+    `${list0.status} presets=${list0.json?.presets?.length} pool=${list0.json?.pool?.length}`,
+  );
+  check('预设页提示要重启 dsh 才生效', String(list0.json?.note ?? '').includes('重启'));
+
+  const mount = await hit(`${BASE}/presets/mount`, {
+    method: 'POST',
+    body: { presetId, skillName: 'route-probe' },
+  });
+  const linkPath = join(presetDir, 'skills', 'route-probe');
+  check(
+    'POST /presets/mount → 建出 junction',
+    mount.status === 200 && mount.json?.ok === true && lstatSync(linkPath).isSymbolicLink(),
+    `${mount.status} ${mount.json?.error ?? ''}`,
+  );
+  check('挂载后技能本体仍在原位', existsSync(join(probeSkill, 'SKILL.md')));
+
+  const list1 = await hit(`${BASE}/presets`);
+  const mountedRow = list1.json?.presets?.[0]?.mounted?.find((row) => row.name === 'route-probe');
+  check(
+    'GET /presets 报出已挂技能并标为链接',
+    mountedRow?.link === true && mountedRow?.hasSkill === true,
+    JSON.stringify(mountedRow ?? null),
+  );
+
+  const unmount = await hit(`${BASE}/presets/unmount`, {
+    method: 'POST',
+    body: { presetId, skillName: 'route-probe' },
+  });
+  check(
+    'POST /presets/unmount → 只删链接，本体不动',
+    unmount.status === 200 &&
+      unmount.json?.ok === true &&
+      !existsSync(linkPath) &&
+      existsSync(join(probeSkill, 'SKILL.md')),
+    `${unmount.status} ${unmount.json?.error ?? ''}`,
+  );
+
+  const badId = await hit(`${BASE}/presets/mount`, {
+    method: 'POST',
+    body: { presetId: '..', skillName: 'route-probe' },
+  });
+  check('预设 id 路径穿越 → 拒绝', badId.status === 400 && badId.json?.ok === false, `${badId.status} ${badId.json?.error}`);
+
+  const badSkill = await hit(`${BASE}/presets/mount`, {
+    method: 'POST',
+    body: { presetId, skillName: 'no-such-skill' },
+  });
+  check(
+    '挂不存在的技能 → 拒绝',
+    badSkill.status === 400 && badSkill.json?.ok === false,
+    `${badSkill.status} ${badSkill.json?.error}`,
+  );
 } finally {
   rmSync(probeRoot, { recursive: true, force: true });
 }

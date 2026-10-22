@@ -4,6 +4,33 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.34] - 2026-10-23
+
+### Added
+
+- **The 预设 tab now manages the DSH agent presets themselves.** The left column lists every
+  folder under `~/.dsh/.agent-presets/`; the right pane shows what that preset carries and lets you
+  mount a skill from the global library into it, or unmount one. Mounting creates a Windows directory
+  junction (`<preset>/skills/<name>` -> the real skill folder) - the skill itself never moves.
+  Unmount removes a link only; a real folder inside a preset is refused, never deleted.
+- `lib/agent-presets.js`: list / mount / unmount with a path-traversal guard (the id must be one
+  safe folder name under `.agent-presets`), a pool-membership check, and link-only deletion.
+- Three host routes: `GET /presets`, `POST /presets/mount`, `POST /presets/unmount`.
+
+### Changed
+
+- The previous "save the current switch state as a preset" view is gone: it kept snapshots in
+  localStorage and never touched disk, so nothing it "saved" reached dsh. Preset membership is now
+  what dsh actually loads at startup, hence the page says **restart dsh after mounting**.
+
+### Verified
+
+- `npm test` 7/7 suites. The host-route suite walks the whole loop: list -> mount creates a
+  junction -> list reports it as a link -> unmount removes only the link -> a `..` preset id and an
+  unknown skill name are both refused.
+- Read against the real `~/.dsh`: 7 presets found (novel 2 / school 15 / paper 12 / research 7 /
+  debate 1 / study 8 / study-guide 2 skills mounted).
+
 ## [0.6.33] — 2026-10-22
 
 ### Fixed
