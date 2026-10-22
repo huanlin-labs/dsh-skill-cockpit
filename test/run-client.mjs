@@ -771,8 +771,8 @@ console.log(`\n报告已写：${join(reportDir, 'client-report.json')}`);
       !/^\s*const \[groupStateRaw, setGroupStateRaw\] = useState\(readGroupState\)/m.test(clientSource),
   );
   check(
-    '四处分组写入全部走共享 store',
-    (clientSource.match(/writeGroupStore\(\(prev\) =>/g) || []).length === 4,
+    '每处分组写入都走共享 store（0.6.20 起 7 处：加入 / 移出 / 移动 / 建组 / 删组 / 改名 / 恢复默认）',
+    (clientSource.match(/writeGroupStore\(\(prev\) =>/g) || []).length >= 7,
     String((clientSource.match(/writeGroupStore\(\(prev\) =>/g) || []).length),
   );
   check(

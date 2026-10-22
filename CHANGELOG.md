@@ -4,6 +4,22 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.20] — 2026-10-22
+
+### Changed
+
+- Group page, right column: the auto-classified cards are no longer dimmed and no longer
+  second-class. Every member card now carries the same × as a hand-placed one, and a group's
+  name is an input for every group (auto ones too), with a delete button on every group.
+- Dragging between groups now **moves** the skill (it leaves the source group) while dragging
+  from the left column still **adds** it — a skill may live in several groups, but dragging
+  never leaves a duplicate behind. Auto-classified members are moved by recording an explicit
+  exclusion for the source group, so the classifier cannot silently put them back.
+- Every group (auto ones included) can be renamed and removed; removing an auto group hides it
+  rather than losing it.
+- New "Reset" button: clears every manual add / remove / rename / hide and restores the default
+  six groups. Groups you created yourself are kept.
+
 ## [0.6.19] — 2026-10-22
 
 ### Fixed
