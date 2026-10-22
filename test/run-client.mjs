@@ -615,9 +615,10 @@ check(
     clientCode.includes('.cockpit-newgroup{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0;flex:1 1 100%;justify-content:flex-start}'),
 );
 check(
-  '⚡ 组卡头会换行，不再把组名挤没（0.6.22）',
+  '⚡ 组卡头会换行，组名框按文字自适应（数字紧贴名字，0.6.25）',
   clientCode.includes('.cockpit-grouphead{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding:8px 12px;') &&
-    clientCode.includes('.cockpit-grouphead .cockpit-input{width:auto;flex:0 1 200px;min-width:64px;max-width:none;'),
+    clientCode.includes('.cockpit-grouphead .cockpit-input{width:auto;flex:0 1 auto;field-sizing:content;min-width:3ch;max-width:60%;') &&
+    clientCode.includes('.cockpit-grouphead .cockpit-count{flex:0 0 auto;'),
 );
 check(
   '⚡ 只隐藏行内的旧开关，不连坐整组开关（用 [data-dsh-skill-toggle] 精准选择）',

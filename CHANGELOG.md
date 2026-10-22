@@ -4,6 +4,16 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.25] — 2026-10-22
+
+### Fixed
+
+- The member count still floated away from the group name: the name field kept a 200 px basis even
+  for a four-character name, so the count started 200 px in. The field now sizes to its own text
+  (`field-sizing: content`, with a `size` attribute fallback), so the count sits immediately after
+  the name — and the count itself renders as a small pill, so it reads as a badge instead of a
+  stray digit.
+
 ## [0.6.24] — 2026-10-22
 
 ### Changed
