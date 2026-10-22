@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.18] — 2026-10-22
+
+### Fixed
+
+- Group page, left column: the "全部技能" title bar was flush with the pane edge while
+  the search box and the skill cards sat 12px in, so the three left edges stepped inwards.
+  The title bar now uses its own `.cockpit-pane-head` with the same 12px gutter and the
+  same rounded frame; the search box takes `width:auto` so it also respects that gutter.
+
 ## [0.6.17] — 2026-10-22
 
 ### Removed
