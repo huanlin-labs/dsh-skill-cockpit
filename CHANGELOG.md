@@ -4,6 +4,17 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.23] — 2026-10-22
+
+### Fixed
+
+- The member count sat far from the group name: the name field was set to grow, so it pushed the
+  count to the middle of the header. The name now keeps its natural width (up to 200 px) and the
+  count sits right next to it.
+- Wheel scrolling over a group scrolled that group's inner list instead of the page. Group boxes
+  now size to their content and nothing inside the board scrolls on its own, so the mouse wheel
+  always moves the page.
+
 ## [0.6.22] — 2026-10-22
 
 ### Fixed

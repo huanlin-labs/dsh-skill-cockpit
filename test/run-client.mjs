@@ -617,7 +617,7 @@ check(
 check(
   '⚡ 组卡头会换行，不再把组名挤没（0.6.22）',
   clientCode.includes('.cockpit-grouphead{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding:8px 12px;') &&
-    clientCode.includes('.cockpit-grouphead .cockpit-input{width:auto;flex:1 1 96px;min-width:64px;max-width:none;'),
+    clientCode.includes('.cockpit-grouphead .cockpit-input{width:auto;flex:0 1 200px;min-width:64px;max-width:none;'),
 );
 check(
   '⚡ 只隐藏行内的旧开关，不连坐整组开关（用 [data-dsh-skill-toggle] 精准选择）',
