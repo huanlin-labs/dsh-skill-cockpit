@@ -610,9 +610,14 @@ check(
     !clientCode.includes('::placeholder{opacity:.45}'),
 );
 check(
-  '⚡ 搜索独占一行、新建分组另起一行右对齐（一行挤不下）',
+  '⚡ 新建分组整行左对齐、挤不下就换行（0.6.22 起与 tab 同一条左基线，不再右对齐）',
   clientCode.includes('.cockpit-search{position:relative;flex:1 1 100%') &&
-    clientCode.includes('.cockpit-newgroup{display:flex;align-items:center;gap:8px;margin:0;flex:1 1 100%;justify-content:flex-end}'),
+    clientCode.includes('.cockpit-newgroup{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0;flex:1 1 100%;justify-content:flex-start}'),
+);
+check(
+  '⚡ 组卡头会换行，不再把组名挤没（0.6.22）',
+  clientCode.includes('.cockpit-grouphead{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding:8px 12px;') &&
+    clientCode.includes('.cockpit-grouphead .cockpit-input{width:auto;flex:1 1 96px;min-width:64px;max-width:none;'),
 );
 check(
   '⚡ 只隐藏行内的旧开关，不连坐整组开关（用 [data-dsh-skill-toggle] 精准选择）',

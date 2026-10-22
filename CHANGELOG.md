@@ -4,7 +4,19 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.21] — 2026-10-22
+## [0.6.22] — 2026-10-22
+
+### Fixed
+
+- Group board alignment. The "new group" toolbar sat flush right with a large left indent, so
+  it lined up with neither the tab row above nor the board below; it now starts at the same
+  left edge as everything else, and the board's left gutter is declared in one place instead
+  of being split between the pane padding and the grid.
+- Group card headers no longer clip. The header row (name input + count + the four-way mode
+  segmented control + delete) is wider than a 250 px card, so it overflowed and the group name
+  was cut off. The header now wraps, the name input flexes to the space actually available,
+  and the grid's minimum column width went from 250 px to 288 px.
+
 
 ### Fixed
 
