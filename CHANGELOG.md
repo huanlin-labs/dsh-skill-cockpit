@@ -4,6 +4,12 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2026-10-23
+
+### Fixed
+
+- `~/.agents/skills` 改为**可选根**：目录不存在时不再列出，体检也不会再报「技能根不存在」；目录存在则自动纳入。新安装不再出现无意义的红字提示。
+
 ## [0.9.0] - 2026-10-23
 
 ### Changed
