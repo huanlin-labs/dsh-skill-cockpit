@@ -4,6 +4,11 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.9.2
+
+- 体检：`~/.agents/skills`（跨工具可选根）目录不存在时不再报「技能根不存在」——根上标 `optional`，诊断层跳过可选根；目录一旦存在照常纳入。
+- 后备库页新增「后备名单」区块：读 `undeclaredIndexPath` 指向的未安装技能索引，按标题分组、可搜索、显示来源与体积；只读展示，面板不下载、不写入。
+- 修复 0.9.1 只改了可写根、体检仍报缺失的问题（两条根列表不是同一处）。
 ## [0.9.1] - 2026-10-23
 
 ### Fixed
