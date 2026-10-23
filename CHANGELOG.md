@@ -4,6 +4,19 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-10-23
+
+### Added
+
+- **A/B 双界面**（偏好设置里的「界面」）：
+  - **A 简洁**：只有「我的技能 / 想用时再装 / 刚删的」三页 + 一句三步说明，适合没有工作区规划的新用户；**首次使用默认 A**。
+  - **B 完整**：原来的七页（体检 / 列表 / 分组 / 预设 / 用量 / 回收站 / 后备库）全保留；**已有偏好的老用户默认 B**，不会被静默降级。
+  - 切一次即记住，只存本机浏览器。
+
+### Tests
+
+- 客户端 95/95；全套 12/12。
+
 ## [0.7.0] - 2026-10-23
 
 ### Added
