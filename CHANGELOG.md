@@ -4,6 +4,11 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.10.1
+
+- 「恢复」不再要求本机留副本：来源是 git 地址（https / ssh / file / 以 .git 结尾）就 `git clone --depth 1` 到临时目录再装进技能根；是本机目录才复制；两者都不是就明确拒绝。临时目录无论成败都清理。
+- 实测：本地 git 仓库 file:// 来源 → clone → 装回成功，无残留临时目录。
+
 ## 0.10.0
 
 - **重做后备库语义**：后备库 = 一份名单（名字 / 一句话能力 / 来源 / 体积 / 备注），不是技能目录。
