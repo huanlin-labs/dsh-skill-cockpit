@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.10.0
+
+- **重做后备库语义**：后备库 = 一份名单（名字 / 一句话能力 / 来源 / 体积 / 备注），不是技能目录。
+  「存进后备库」= 跟普通删除完全一样（复制进回收站后删除），只多写一行名单。
+  「恢复」= 按名单里的「来源」装回来；来源是本机目录才复制，不是本机目录（仓库名/网址）明确拒绝 —— 面板不联网。
+- 名单路径可配 `reserveListPath`，默认 `<DSH home>/skill-panel/后备库.md`；名单不能落在技能根内。
+- 0.9.2 的「后备名单」区块并入本页，不再分两块。
+
 ## 0.9.2
 
 - 体检：`~/.agents/skills`（跨工具可选根）目录不存在时不再报「技能根不存在」——根上标 `optional`，诊断层跳过可选根；目录一旦存在照常纳入。
