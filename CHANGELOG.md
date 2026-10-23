@@ -4,6 +4,17 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.41] - 2026-10-23
+
+### Fixed
+
+- 体检页每个可修的条目现在直接带「一键修」按钮 —— 之前只有列表页有，体检页只给文字建议，等于"看得到、点不到"。
+- 「技能根不存在」不再一律当故障：只要还有别的根扫到技能，这一条按提示显示（不标黄），并注明「该根下 0 个技能，不影响其它根」。这一类不是技能文件问题，没有一键修，改为「复制路径」，方便去资源管理器把目录建出来。
+
+### Tests
+
+- Client suite 95/95（新增两条断言：体检行的一键修钩子、空根降级文案）。
+
 ## [0.6.40] - 2026-10-23
 
 ### Fixed

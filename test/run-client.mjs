@@ -928,6 +928,15 @@ console.log(`\n报告已写：${join(reportDir, 'client-report.json')}`);
   );
 }
 
+  check(
+    '体检条目带一键修（不再只有列表页有）',
+    clientSource.includes("'data-dsh-check-repair'"),
+  );
+  check(
+    '空技能根降级为提示（不影响其它根）',
+    clientSource.includes('checkup.rootHarmless') &&
+      clientSource.includes("kind === 'root-missing' && anySkills"),
+  );
 const failed = checks.filter((c2) => !c2.ok);
 console.log(`\n=== 客户端自测：${checks.length - failed.length}/${checks.length} 通过 ===`);
 process.exit(failed.length === 0 ? 0 : 1);
