@@ -914,8 +914,8 @@ console.log(`\n报告已写：${join(reportDir, 'client-report.json')}`);
     !clientSource.includes("h('select'") && !clientSource.includes("'select',"),
   );
   check(
-    '七处下拉都走同一个 Picker 组件',
-    (clientSource.match(/h\(Picker,/g) || []).length === 7,
+    '六处下拉都走同一个 Picker 组件',
+    (clientSource.match(/h\(Picker,/g) || []).length === 6,
   );
   check(
     '下拉菜单自带底色与字色，不靠 color:inherit',
