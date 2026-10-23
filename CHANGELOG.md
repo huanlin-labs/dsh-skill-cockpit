@@ -4,6 +4,11 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.10.4
+
+- 后备库排版重做：按名单里的标题分组（组名 + 条数，组间分隔线），条目改两行式——第一行名字 + 体积，第二行能力说明，第三行灰色来源（超长省略，悬停看全），右侧固定「装回」按钮。
+- 顶部显示「共 N 条 · M 组」；搜索同时匹配组名。
+
 ## 0.10.3
 
 - 修：本机覆盖 `local.json` 只按 `dshHome` 找，宿主把 dshHome 配成别处时整份配置被静默忽略（表现：后备库一直显示默认空名单）。现在同时找 `<dshHome>/skill-cockpit/local.json` 与 `~/.dsh/skill-cockpit/local.json`。
