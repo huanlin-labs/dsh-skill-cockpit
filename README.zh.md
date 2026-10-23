@@ -213,3 +213,15 @@ skill 没有 npm 那种版本号与通知 —— 上游有没有变，只能拿�
 ```
 
 网络不通时按钮会报出 git 的原始错误，不会假装「已最新」。
+
+### 不开会话也能查（0.11.1）
+
+比对是插件自己的 Node 代码在做，**不调用任何模型，0 token、0 元**。要它在你不在时也跑，用 Windows 计划任务：
+
+```bat
+schtasks /create /tn dsh-skill-cockpit-update-check /sc daily /st 03:30 /f ^
+  /tr "\"C:\Program Files\nodejs\node.exe\" \"<插件目录>\bin\check-updates.mjs\""
+```
+
+结果写到 `<DSH home>/skill-cockpit/update-report.json`；面板一打开就读这份报告，不用等。
+改时间 `schtasks /change /tn … /st 09:00`，删除 `schtasks /delete /tn … /f`。

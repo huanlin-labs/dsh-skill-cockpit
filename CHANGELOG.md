@@ -4,6 +4,18 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.11.1
+
+### Added
+- **无会话自动检查**：`bin/check-updates.mjs` —— 独立 Node 脚本，不依赖 dsh、不调用模型。
+  由 Windows 计划任务每天跑一次，把结果写进 `<DSH home>/skill-cockpit/update-report.json`。
+- 面板打开时通过 `GET /update/report` 读这份报告（不联网、秒回），显示「上次后台检查：时间 · N 个有更新」。
+- 本机已登记计划任务 `dsh-skill-cockpit-update-check`（每天 03:30）。
+
+### Notes
+- 比对的成本：纯 CPU + 网络，0 token、0 元；计划任务跑完即退。
+- 改时间：`schtasks /change /tn dsh-skill-cockpit-update-check /st 09:00`；删除：`/delete`。
+
 ## 0.11.0
 
 ### Added
