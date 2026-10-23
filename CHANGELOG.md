@@ -4,6 +4,16 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.43] - 2026-10-23
+
+### Fixed
+
+- 偏好条里的两个下拉底部被卡片裁掉（卡片用 `overflow:hidden` 裁圆角，顺手把下拉和聚焦环一起裁了）。含下拉的卡片改为 `overflow:visible`，偏好条内的下拉再压扁一点，一行放得下。
+
+### Tests
+
+- Client suite 95/95。
+
 ## [0.6.42] - 2026-10-23
 
 ### Fixed
