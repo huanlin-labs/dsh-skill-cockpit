@@ -240,3 +240,20 @@ Pure ESM JavaScript, no build step — `lib/*.js` runs as-is.
 | 交互 | hover / 选中态，Esc 与点外面收起，点当前项不重复触发 |
 
 截图：`产出/0.6.40/dropdown-sort.png` · `dropdown-jump.png`。测试：客户端 93/93（新增 4 条防回退断言）。
+
+
+## Generic build and local build
+
+The published package is the **generic build (A)**. It assumes nothing about the machine:
+the trash lives in `<DSH home>/skill-panel/trash`, the reserve vault in
+`<DSH home>/skill-vault`, and writable skills are the DSH-managed roots only.
+
+A local build (B) is the same code plus an optional machine-local file:
+
+```text
+<DSH home>/skill-cockpit/local.json
+```
+
+Supported keys (all optional): `trashRoot`, `reserveDir`, `writableSources`,
+`customSkillDirs`, `agentsHome`. The file is never published and never required —
+without it the generic defaults apply.

@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-10-23
+
+### Changed
+
+- **默认值去本地体系化（对外版 A）**：回收站默认改到 `<DSH home>/skill-panel/trash`，不再写死 `D:\回收站`；界面文案不再显示本机路径。
+- **本机覆盖（B 专用，不进 npm 包）**：`<DSH home>/skill-cockpit/local.json` 可覆盖 `trashRoot`、`reserveDir` 等；B 用它保留自己的体系，A 完全不需要它。
+- 回收站三个路由改为用服务端配置的路径，不再相信客户端传来的路径。
+
 ## [0.7.0] - 2026-10-23
 
 ### Added
