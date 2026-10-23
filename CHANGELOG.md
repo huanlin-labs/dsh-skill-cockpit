@@ -4,6 +4,11 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.10.3
+
+- 修：本机覆盖 `local.json` 只按 `dshHome` 找，宿主把 dshHome 配成别处时整份配置被静默忽略（表现：后备库一直显示默认空名单）。现在同时找 `<dshHome>/skill-cockpit/local.json` 与 `~/.dsh/skill-cockpit/local.json`。
+- 真机验证：`/vault/list` 返回 total=190、exists=true。
+
 ## 0.10.2
 
 - A 版收口：本机没装 git 时，点「恢复」给出人话提示（「先装 Git 再点恢复，或把来源改成本机目录」），不再是 ENOENT 堆栈。
