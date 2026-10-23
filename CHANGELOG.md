@@ -4,6 +4,23 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.11.0
+
+### Added
+- **上游更新**：技能面板新增「检查更新 / 更新」。
+  - 检查：按技能目录找到它的上游（所在 git 工作树的 origin + 相对路径，或 `<DSH home>/skill-cockpit/upstreams.json` 里配的 {url, path}），
+    用 `git clone --filter=blob:none --no-checkout --depth 1` + `sparse-checkout` 只拉这个技能的文件，
+    与装着的目录逐字节比对：一样 = 已最新，不一样 = 有更新。
+  - 更新：先把旧目录整份复制进回收站，再用上游那份替换；已是最新则什么都不做。
+  - 状态：有更新 / 已更新 / 已最新 / 无上游 / 出错（网络失败报原文，绝不当成「已最新」）。
+  - 代理：git 配了「没人监听的本机代理」导致连接失败时，自动直连重试一次。
+- 新路由：`POST /__dsh-skill-panel/update/check`、`POST /__dsh-skill-panel/update/apply`（共 29 条）。
+- `upstreams.json`（可选，放 `<DSH home>/skill-cockpit/`）：给不在 git 仓库里的技能手填上游地址。
+
+### Notes
+- 一次检查会按仓库各克隆一次（只下提交与树），实测单个仓库约 1–2 分钟；之后同一批技能共用这次克隆。
+- 只读上游，绝不改动别人的工作树；替换前备份走既有回收站。
+
 ## 0.10.4
 
 - 后备库排版重做：按名单里的标题分组（组名 + 条数，组间分隔线），条目改两行式——第一行名字 + 体积，第二行能力说明，第三行灰色来源（超长省略，悬停看全），右侧固定「装回」按钮。

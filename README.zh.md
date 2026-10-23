@@ -198,3 +198,18 @@ node test/run-all.mjs [报告目录]
 ## 许可
 
 MIT。
+
+
+## 上游更新（0.11.0）
+
+skill 没有 npm 那种版本号与通知 —— 上游有没有变，只能拿内容比。
+
+- **检查更新**：按技能目录往上找 git 工作树，取 `origin` 与相对路径；用 blob 过滤的浅克隆只拉这个技能的文件，与装着的那份逐字节比较。
+- **更新**：旧目录整份复制进回收站 → 用上游那份替换。已是最新则不动。
+- **无上游**：目录不在任何 git 仓库里（例如从别处拷来的），此时可在 `<DSH home>/skill-cockpit/upstreams.json` 里补地址：
+
+```json
+{ "my-skill": { "url": "https://github.com/owner/repo", "path": "skills/my-skill" } }
+```
+
+网络不通时按钮会报出 git 的原始错误，不会假装「已最新」。
