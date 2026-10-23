@@ -4,6 +4,16 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.42] - 2026-10-23
+
+### Fixed
+
+- 体检页的「一键修」只画在**真能修**的条目上（描述过短 / 目录名≠技能名 / 入口缺字段）。「正文疑似为空」「跨根重名」原本也画了按钮，点了只会"没反应"—— 现在改为一句提示「一键修只补 name / 描述，不编正文」。修不修得了，按钮说了算。
+
+### Tests
+
+- Client suite 95/95。
+
 ## [0.6.41] - 2026-10-23
 
 ### Fixed
