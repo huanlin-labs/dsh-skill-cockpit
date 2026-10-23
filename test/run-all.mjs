@@ -23,6 +23,11 @@ const suites = [
   ['用量', join(import.meta.dirname, 'run-usage.mjs')],
   ['诊断', join(import.meta.dirname, 'run-checks.mjs')],
   ['四态', join(import.meta.dirname, 'run-mode.mjs')],
+  ['管理', join(import.meta.dirname, 'run-manage.mjs')],
+  ['回收站', join(import.meta.dirname, 'run-trash.mjs')],
+  ['一键修', join(import.meta.dirname, 'run-repair.mjs')],
+  ['备份', join(import.meta.dirname, 'run-backup.mjs')],
+  ['模板', join(import.meta.dirname, 'run-template.mjs')],
 ];
 
 const results = [];

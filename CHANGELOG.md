@@ -4,6 +4,90 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.40] - 2026-10-23
+
+### Fixed
+
+- **Dropdowns are drawn by the panel, not the operating system.** Six native `<select>` elements
+  remained — sort, jump-to-skill, preferences (usage window / default sort), batch group and the
+  new-skill template. The OS paints that popup itself, so on a dark theme it appeared as a light
+  list with the inherited light-grey text: the options could not be read. All six now share one
+  self-drawn `Picker`: explicit background and text colour from theme tokens (with fallbacks),
+  hover and selected states, Esc / click-outside to close, and clicking the current option does
+  not fire the handler again.
+- **Long lists scroll instead of covering the panel.** The menu is capped at 248px with its own
+  scrollbar. The jump-to-skill picker (40+ skills) also gained its own filter box and opens
+  right-aligned to its trigger, so it stays inside the panel.
+
+### Docs
+
+- README (both languages) documents the optional **reserve skill vault**: a plain folder of
+  uninstalled skills plus one markdown table, indexed read-only by the panel, installed only when
+  needed through the existing import flow.
+
+### Tests
+
+- Client suite 93/93. Four new assertions keep the panel free of native `<select>`, keep all six
+  dropdowns on the shared `Picker`, and pin the menu's own background / text colour plus its
+  max-height.
+
+## [0.6.39] - 2026-10-23
+
+Local-only skill cockpit: every lifecycle action now happens inside the panel, with no MCP
+management and no network market.
+
+### Added
+
+- **One-click repair.** Fixes only what it can prove: a missing `name`, a `name` that differs from
+  its folder, an unquoted `:` inside `description`, and a missing or too-short description taken
+  from the first usable body line. It copies the file to `.bak-<stamp>` first and refuses instead
+  of inventing content when the frontmatter or body is unusable. Idempotent.
+- **Recycle bin.** Deletes move the whole folder into `D:\\回收站\\技能面板删除` before anything is
+  removed. The panel lists, previews, restores and purges those copies; purge only ever touches the
+  trash copy, never the live skill.
+- **Batch actions.** Multi-select rows, then enable / disable / delete (with an inline second
+  confirmation) / assign to a group / clear.
+- **Sort and filter.** Name, source, status and usage; the usage sort loads the usage index lazily.
+- **Preferences.** Usage window, default sort and the destructive-action confirmation are stored in
+  `localStorage` and survive reloads.
+- **Local backup.** One skill or all of them, copied into `D:\\回收站\\技能面板备份\\<stamp>`. Sources
+  are only read; same-name skills get a source prefix instead of overwriting.
+- **Create templates.** Blank, with script (`scripts/main.mjs`) or with reference
+  (`reference/notes.md`).
+- **Shadow badge.** Cross-root duplicates now say which copy hides them, right on the row.
+- **Jump picker.** A skill picker next to the search box filters straight to one skill.
+
+### Changed
+
+- The usage tab, list toolbar and management form share one set of compact controls; the panel now
+  counts **24** HTTP routes.
+
+### Tests
+
+- 12 suites / 12 passing, including new `run-trash.mjs` (14), `run-repair.mjs` (13),
+  `run-backup.mjs` (11) and `run-template.mjs` (10); client suite 89/89; routes 69/69.
+
+## [0.6.38] - 2026-10-23
+
+### Added
+
+- **Management, for real.** Three writes join the existing switch: create a skill, edit its
+  description / when-to-use / body, and import a local folder that contains `SKILL.md`. All three
+  only ever touch the two user-level writable roots; project-level roots stay read-only.
+- **Delete that cannot lose data.** Deleting copies the whole skill folder into the recycle bin
+  (`D:\\回收站\\技能面板删除`) and only then removes the original. The UI asks twice.
+- **Backups on every edit.** Each change writes `<file>.bak-<stamp>` first, then replaces the file
+  atomically; an unchanged save writes nothing.
+- Five new routes: `POST /skill/read`, `/skill/create`, `/skill/update`, `/skill/delete`,
+  `/skill/import`.
+- New self-test suite `test/run-manage.mjs` (16 assertions), covering the happy paths and the
+  refusals: duplicate name, Chinese name, short description, missing `SKILL.md`, non-UTF-8 file,
+  path traversal, target outside the writable root.
+
+### Changed
+
+- Route count self-test now expects 19 routes (was 14); client suite 89 assertions.
+
 ## [0.6.37] - 2026-10-23
 
 ### Added

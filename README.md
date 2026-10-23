@@ -65,6 +65,7 @@ The panel is one page in the nav with four views along the top:
 | View | What it is for |
 |---|---|
 | **列表** | every skill in one place, grouped into cards: name, source-root tag, functional tags, description, size, per-skill switch, 「看正文」 to read its entry file |
+| **管理** | 「新建技能」「导入技能」 on the list, 「编辑」「删除」 on every writable row. Delete copies the folder into the recycle bin first and asks twice; edits keep a `.bak`; imports never overwrite a same-name skill. |
 | **分组** | a board you arrange yourself — drag a card from the left pane into a group on the right; six built-in functional groups (文档办公 · 代码工程 · 设计视觉 · 写作沟通 · 研究资料 · 元技能) plus your own, renameable and deletable |
 | **用量** | per-skill invocation counts aggregated from session logs, so you can see which installed skills have never been used |
 | **问题** | 「loads but earns nothing」 and 「why is this skill missing」 diagnostics, one row per finding |
@@ -85,6 +86,11 @@ Two behaviours worth stating explicitly, because both are places where a naive p
 | GET | `/__dsh-skill-panel/skills?cwd=…` | the full scan report (`cwd` fixes the project-level roots) |
 | GET | `/__dsh-skill-panel/body?path=…&cwd=…` | one entry file's text (whitelist-only, size-capped) |
 | GET | `/__dsh-skill-panel/undeclared?q=…` | search the "not installed" index (read-only) |
+| POST | `/__dsh-skill-panel/skill/read` | read one writable skill (edit form fill) |
+| POST | `/__dsh-skill-panel/skill/create` | create `<root>/<name>/SKILL.md` |
+| POST | `/__dsh-skill-panel/skill/update` | edit description / when-to-use / body, with backup |
+| POST | `/__dsh-skill-panel/skill/delete` | move the skill folder into the recycle bin |
+| POST | `/__dsh-skill-panel/skill/import` | copy a local folder that contains SKILL.md |
 | GET | `/__dsh-skill-panel/usage` | `{ ok, skills:[{name,count,lastAt}], scanned, skipped, sessions, updatedAt }` |
 | GET | `/__dsh-skill-panel/checks?cwd=…` | `{ ok, checks:[{kind,skill,detail}], summary, thresholds, note }` |
 | POST | `/__dsh-skill-panel/toggle` | `{ filePath, disable, cwd, plan? }` → entry-file rename |
@@ -127,6 +133,31 @@ A skill can reach a session down two different roads, and only one of them ends 
 That asymmetry is not a missing feature, it is the host API's shape, so the panel states it
 plainly: a provider-supplied row renders `本面板无法禁用（属 … provider）` where the switch would
 otherwise sit. A switch that silently did nothing would be worse than no switch.
+
+## Optional: a reserve skill vault (index only)
+
+Skills do not have to be installed to be findable. Keep a plain folder of skill directories
+somewhere outside the two skill roots — `~/.dsh/skills` and `~/.agents/skills` — and write one
+markdown table next to it. That folder is never scanned by dsh and never loaded into a session, so
+it costs no context and no memory: it is cold storage that only the panel's search can see.
+
+The table is the contract. One row per skill, five columns:
+
+| 名字 | 一句话能力 | 来源（仓库·许可） | 体积 | 适用会话/预设 |
+|---|---|---|---|---|
+| `code-review` | Reviews a diff for correctness, security and tests | my-org/skills · MIT | 42.1 KB | any |
+
+Point the plugin's `undeclaredIndexPath` config at that file. From then on, a search that misses
+the installed list also queries the table and renders a read-only card (name, one-liner, source and
+licence, size, suggested session) with a copy button — the panel never downloads and never installs
+by itself.
+
+To actually use one, install it temporarily: open **Import skill**, give it the vault folder path,
+and the panel copies it into a writable root. Delete it when the task is done — deletion goes
+through the recycle bin, so the copy can be restored and the vault is untouched.
+
+Unconfigured, or pointing at a file that does not exist, the second hop simply does not appear;
+nothing errors. (The shipped default points at the author's own vault — set your own path.)
 
 ## Screenshots
 
@@ -178,3 +209,34 @@ Pure ESM JavaScript, no build step — `lib/*.js` runs as-is.
 ## License
 
 [MIT](LICENSE)
+
+## 0.6.39 · 本地技能全能面板
+
+从「只看」升级为「全生命周期」，全部在本地完成，不含 MCP 管理、不含联网市场：
+
+| 能力 | 说明 |
+|---|---|
+| 回收站 | 删除先整目录移入 `D:\回收站\技能面板删除`；面板可预览 / 还原 / 彻底删除 |
+| 一键修 | 补 `name`、纠正 name 与目录不一致、给带冒号的描述加引号、用正文首行补短描述；改前 `.bak`，修不了就拒绝 |
+| 批量 | 多选后批量开 / 关 / 删（二次确认）/ 加入分组 |
+| 排序筛选 | 名称 / 来源 / 状态 / 用量（用量懒加载） |
+| 偏好 | 用量窗口、默认排序、危险操作二次确认，写入 localStorage |
+| 备份 | 单技能 / 全部复制到 `D:\回收站\技能面板备份\<时间戳>`，不覆盖同名 |
+| 模板 | 空白 / 带脚本 / 带引用 |
+| 遮蔽徽章 | 跨根重名时在行内标出「被遮蔽 · 遮蔽者」 |
+| 跳转 | 搜索框旁下拉直接定位技能 |
+
+截图见 `D:\工作区\插件制作\技能面板\产出\0.6.39\`。自测 12/12 套件（回收站 14、一键修 13、备份 11、模板 10、客户端 89、路由 69）。
+
+## 0.6.40 · 下拉全部自绘
+
+原生 `<select>` 的下拉列表由操作系统绘制 —— 深色主题下白底浅灰字，选项读不出来；技能一多，列表还变成一条长条盖住面板。0.6.40 把最后 6 处原生下拉（排序 / 跳到技能 / 偏好里的用量窗口与默认排序 / 批量加入分组 / 新建模板）统一换成一个自绘 `Picker`：
+
+| 项 | 落地 |
+|---|---|
+| 对比度 | 菜单自带底色与字色（主题 token，缺失时有兜底），不再靠继承 |
+| 高度 | 限高 248px + 滚动，长列表不再盖住面板 |
+| 长列表 | 「跳到技能」自带搜索框，并右对齐到触发按钮 |
+| 交互 | hover / 选中态，Esc 与点外面收起，点当前项不重复触发 |
+
+截图：`产出/0.6.40/dropdown-sort.png` · `dropdown-jump.png`。测试：客户端 93/93（新增 4 条防回退断言）。

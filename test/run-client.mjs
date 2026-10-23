@@ -782,8 +782,8 @@ console.log(`\n报告已写：${join(reportDir, 'client-report.json')}`);
     String((clientSource.match(/writeGroupStore\(\(prev\) =>/g) || []).length),
   );
   check(
-    '四处技能写入都广播（开关 / 整组开关 / 四态 / 整组四态）',
-    (clientSource.match(/emitSkillsChanged\(mountToken\)/g) || []).length === 4,
+    '技能写入都广播（开关 / 整组开关 / 四态 / 整组四态 / 批量开 / 批量删）',
+    (clientSource.match(/emitSkillsChanged\(mountToken\)/g) || []).length === 6,
     String((clientSource.match(/emitSkillsChanged\(mountToken\)/g) || []).length),
   );
 
@@ -904,6 +904,27 @@ console.log(`\n报告已写：${join(reportDir, 'client-report.json')}`);
     '搜索框文案中英各一份',
     clientSource.includes("'groups.searchPlaceholder': '搜技能名或描述…'") &&
       clientSource.includes("'groups.searchPlaceholder': 'Search skills…'"),
+  );
+}
+
+// ---- 下拉（2026-10-23）：原生 <select> 的下拉由系统绘制，深色主题下白底浅灰字 ----
+{
+  check(
+    '面板不再用原生 <select>（下拉全部自绘）',
+    !clientSource.includes("h('select'") && !clientSource.includes("'select',"),
+  );
+  check(
+    '六处下拉都走同一个 Picker 组件',
+    (clientSource.match(/h\(Picker,/g) || []).length === 6,
+  );
+  check(
+    '下拉菜单自带底色与字色，不靠 color:inherit',
+    /\.cockpit-picker-menu\{[^}]*background:var\(--dsw-alias-bg-module-platform/.test(clientSource) &&
+      /\.cockpit-picker-menu\{[^}]*color:var\(--dsw-alias-label-primary/.test(clientSource),
+  );
+  check(
+    '长列表下拉限高滚动，不再铺满整个面板',
+    clientSource.includes('max-height:248px;overflow-y:auto'),
   );
 }
 
