@@ -6,6 +6,9 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## 0.11.1
 
+> 2026-10-24 更正：本机计划任务 `dsh-skill-cockpit-update-check` 实测未按时跑成（只登录时运行 + 电池不启动，上次结果 0x800710E0），按户主决定已删除。`bin/check-updates.mjs` 与 `GET /update/report` 保留，可手动跑或以后改别的触发方式。
+
+
 ### Added
 - **无会话自动检查**：`bin/check-updates.mjs` —— 独立 Node 脚本，不依赖 dsh、不调用模型。
   由 Windows 计划任务每天跑一次，把结果写进 `<DSH home>/skill-cockpit/update-report.json`。
