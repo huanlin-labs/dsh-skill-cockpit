@@ -4,6 +4,34 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.37] - 2026-10-23
+
+### Added
+
+- **The checkup now answers "why is this skill invisible?"** — two new problem kinds: `root-missing` (a
+  configured skill root does not exist, so nothing under it is loaded) and `invalid-entry` (the entry file
+  was rejected: no frontmatter, unclosed `---`, bad YAML, missing `name`/`description`, bad name, or
+  unreadable). Each row shows a plain-language reason plus the same "what you can do" fix list.
+- **Structured `evidence`** on every check row instead of `null`: `shadowedBy` for shadowed skills,
+  `status`/`reason` for rejected entries, `path`/`source`/`rank` for missing roots.
+- **README screenshots** — `docs/checkup.png` and `docs/list.png`, rendered from the shipped CSS in the
+  dark theme.
+
+### Fixed
+
+- Regression coverage for the four-state switch: `off → user-only` now restores the original file name and
+  writes `disable-model-invocation` (previously only `off → on` was covered).
+
+### Changed
+
+- Preset scope pinned: this panel **reads** DSH presets and mounts/unmounts skills inside them. Creating,
+  renaming or deleting preset folders is explicitly out of scope (a separate preset workbench could do that).
+
+### Verified
+
+- `npm test` 7/7. Diagnostics 55/55 (7 new assertions), four-state 9/9 (1 new), client suite green with the
+  two new i18n keys.
+
 ## [0.6.36] - 2026-10-23
 
 ### Fixed

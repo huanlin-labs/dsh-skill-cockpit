@@ -130,18 +130,11 @@ otherwise sit. A switch that silently did nothing would be worse than no switch.
 
 ## Screenshots
 
-Being retaken against v0.6.8 and will be committed to `docs/screenshots/`:
+Rendered from the shipped CSS in the dark theme (900 px wide):
 
-| File | View | Status |
-|---|---|---|
-| `list.png` | 列表 — grouped cards, per-skill switches, source tags | pending |
-| `groups.png` | 分组 — drag-and-drop board, tri-state group switches, greyed-off group | pending |
-| `usage.png` | 用量 — per-skill invocation counts | pending |
-| `problems.png` | 问题 — why-invisible diagnostics | pending |
+![Checkup: six problem kinds with a fix list per row](docs/checkup.png)
 
-This README ships without images on purpose: no placeholder logos and no screenshots of an older
-UI. When they land they go in the table above, first one right under the title.
-
+![List: checkup summary bar and the four-state pill on every row](docs/list.png)
 ## Install
 
 ```bash

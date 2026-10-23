@@ -110,6 +110,17 @@ try {
     on.applied === true && !/disable-model-invocation|user-invocable/.test(onText),
   );
 
+
+  // 6b. off -> user-only must restore the FILE NAME too (regression that was missing)
+  setSkillMode({ filePath: skillDir, mode: 'off' }, options);
+  const uoFromOff = setSkillMode({ filePath: skillDir, mode: 'user-only' }, options);
+  record(
+    '关 → 仅人工：恢复原名并写入 disable-model-invocation',
+    uoFromOff.applied === true && existsSync(entry) && !existsSync(disabled) && /^disable-model-invocation:\s*true\s*$/m.test(text()),
+    `applied=${String(uoFromOff.applied)} restored=${String(uoFromOff.restoredFromDisabled)}`,
+  );
+  setSkillMode({ filePath: entry, mode: 'on' }, options);
+
   // 7. a path outside every writable root is refused (the write gate holds).
   const outside = join(home, 'elsewhere');
   mkdirSync(outside, { recursive: true });

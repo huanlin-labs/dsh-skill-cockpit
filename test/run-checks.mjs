@@ -413,6 +413,35 @@ const before = JSON.stringify(frozen);
 analyzeSkills(frozen);
 check('纯函数：不修改传入的报告', JSON.stringify(frozen) === before);
 
+
+// ---- 9. 0.6.37 新增：root-missing / invalid-entry / evidence -----------------
+
+const rootReport = {
+  skills: [goodSkill({ name: 'broken-one', status: 'dropped:bad-yaml', reason: 'unexpected end of stream' })],
+  roots: [
+    { source: 'custom', path: 'C:\\Users\\x\\missing-skills', rank: 300, exists: false, configured: true },
+    { source: 'user-dsh', path: 'C:\\Users\\x\\.dsh\\skills', rank: 10, exists: true, configured: true },
+    { source: 'bundled', path: null, rank: 0, exists: false, configured: false },
+  ],
+};
+const withRoots = analyzeSkills(rootReport);
+const rootRow = withRoots.checks.find((row) => row.kind === 'root-missing');
+check('技能根不存在 → root-missing 一条', withRoots.summary.rootMissing === 1 && Boolean(rootRow));
+check(
+  'root-missing 的 evidence 带 path/source（不再恒 null）',
+  Boolean(rootRow && rootRow.evidence && rootRow.evidence.path === 'C:\\Users\\x\\missing-skills' && rootRow.evidence.source === 'custom'),
+);
+check('exists:true 与 configured:false 的根都不报', withRoots.checks.filter((row) => row.kind === 'root-missing').length === 1);
+
+const entryRow = withRoots.checks.find((row) => row.kind === 'invalid-entry');
+check('dropped:bad-yaml → invalid-entry 一条', withRoots.summary.invalidEntry === 1 && Boolean(entryRow));
+check('invalid-entry 说人话（含 YAML 与「模型看不到」）', Boolean(entryRow && /YAML/.test(entryRow.detail) && /模型看不到/.test(entryRow.detail)));
+check('invalid-entry 的 evidence 带 status 与 reason', Boolean(entryRow && entryRow.evidence && entryRow.evidence.status === 'dropped:bad-yaml' && /unexpected end/.test(entryRow.evidence.reason || '')));
+
+const shadowEvidence = analyzeSkills(report([goodSkill({ name: 'dup', shadowed: true, shadowedBy: 'C:\\Users\\x\\.dsh\\skills\\dup\\SKILL.md' })]));
+const shadowRow = shadowEvidence.checks.find((row) => row.kind === 'shadowed');
+check('shadowed 的 evidence 带 shadowedBy', Boolean(shadowRow && shadowRow.evidence && /dup/.test(shadowRow.evidence.shadowedBy || '')));
+
 // ---- report ---------------------------------------------------------------
 
 mkdirSync(reportDir, { recursive: true });
