@@ -4,6 +4,20 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-10-23
+
+### Added
+
+- **后备库（reserve vault）**：技能的长期停放区，跟回收站分工 —— 回收站管「刚删、想撤销」，后备库管「暂时不用、以后还要」。
+  - 删除确认框多一个勾选「存进后备库」：勾了就整目录移进后备库（不是复制到回收站），并在库里追加一行 `_后备库索引.md`。
+  - 新页签「后备库」（回收站右边）：按分类目录分组、可搜索、每行「装回」一键复制回技能根；装回不删库里那份，可反复装。
+  - 位置默认 `<DSH home>/skill-vault`，可用 `reserveDir` 配置改到自己的资料盘；放在任何技能根之内会被拒绝（否则会被当成已安装技能扫到）。
+  - 目录结构就是分类：`<后备库>/<分类>/<技能名>/SKILL.md`；直接放根下算「未分类」。
+
+### Tests
+
+- 客户端 95/95；全套 12/12；`lib/vault.js` 移动→列出→装回→拒绝覆盖 全链路实测通过。
+
 ## [0.6.43] - 2026-10-23
 
 ### Fixed
