@@ -4,6 +4,11 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project intends to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.10.2
+
+- A 版收口：本机没装 git 时，点「恢复」给出人话提示（「先装 Git 再点恢复，或把来源改成本机目录」），不再是 ENOENT 堆栈。
+- README 补 `reserveListPath` 默认位置与改法（后备名单存哪、怎么换成自己的清单）。
+
 ## 0.10.1
 
 - 「恢复」不再要求本机留副本：来源是 git 地址（https / ssh / file / 以 .git 结尾）就 `git clone --depth 1` 到临时目录再装进技能根；是本机目录才复制；两者都不是就明确拒绝。临时目录无论成败都清理。
