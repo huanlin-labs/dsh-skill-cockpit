@@ -118,7 +118,7 @@ check('导出 name = dsh-skill-cockpit', name === 'dsh-skill-cockpit', name);
 check('inject 只声明 tools（用到的服务先声明，不探测）', JSON.stringify(inject) === JSON.stringify(['tools']), JSON.stringify(inject));
 check('注册了 27 条路由', registered.length === 27, registered.map((r) => r.path).join(' '));
 check('注册了 skill_panel 工具', toolsRegistered.length === 1 && toolsRegistered[0]?.name === 'skill_panel', toolsRegistered.map((x) => x.name).join(' '));
-check('skill 工具声明了 11 个动作', (toolsRegistered[0]?.parameters?.action?.description ?? '').trim().split('\n').length === 11);
+check('skill 工具声明了 11 个动作', (toolsRegistered[0]?.parameters?.properties?.action?.description ?? '').trim().split('\n').length === 11);
 check('skill 工具带 execute 与 render', typeof toolsRegistered[0]?.execute === 'function' && typeof toolsRegistered[0]?.output?.render === 'function');
 check(
   '四态路由 /mode 已注册',
