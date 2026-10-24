@@ -1,6 +1,6 @@
 # dsh-skill-cockpit
 
-> **状态：v0.6.8 —— 已在真机端到端跑通。** **6/6 套件 · 287 断言**全绿，CI 每次推送都跑同一套。已以 `dsh-skill-cockpit` 发布，**npm 上现在是 0.2.3**，本版 0.6.7 是下一次发布。（裸名 `dsh-skill-panel` 属另一位作者。）截图正按 0.6.7 重拍，见 [截图](#截图)。
+> **v0.12.1 · 已发布 npm [`dsh-skill-cockpit@0.12.1`](https://www.npmjs.com/package/dsh-skill-cockpit)** ｜ `npm test` 12/12 套件全绿 ｜ MIT
 
 DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加一个「技能」入口，
 点开是**主区一整页**，列出本机**全部**技能、**按技能开关**，并接「未安装技能索引」做第二跳。
@@ -11,6 +11,18 @@ DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加�
 - **顺序严格夹在「插件」(order 0) 与「自动化任务」(order 10) 之间** —— 外壳按 `order` 升序排（`sort((a,b)=>a.order-b.order)`），5 落在唯一的空档里，与加载先后无关。
 - 因此本包**不声明任何 `@deepseek-ai/dsh*` peer** ⇒ 不受 DSH 兼容性豁免闸门影响（见工作区 `AGENTS.md` §四 铁律 1/3）
 - 纯 ESM JavaScript，无构建链：`lib/*.js` 直接可跑，自测用 `node` 即可复跑
+
+## 安装
+
+```bash
+npm i dsh-skill-cockpit@0.12.1      # 或 pnpm add / yarn add
+```
+
+装完在 profile 的 bundles 里加上 `dsh-skill-cockpit`（或 `cordis.patch.yml` 用 `insert:` 挂一行），重启 DSH 即可在左上导航看到「技能」。
+本机开发可直接 `link:D:/插件/dsh-skill-panel`。
+
+**同时给 dsh 一个工具**：`skill_panel`（11 个动作：list / read / create / update / delete / toggle / repair / backup / trash_list / trash_restore / trash_purge）。
+以后「把某技能停掉」「新建一个技能」这类话，模型直接调工具改磁盘，不必点面板；删除类动作必须显式 `confirm: true`。
 
 ## 它解决什么
 
@@ -54,9 +66,9 @@ DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加�
 
 深色主题、真实 CSS 渲染（900px 宽）：
 
-![体检页：六类问题 + 逐条解法](docs/checkup.png)
+![体检页：六类问题 + 逐条解法](https://raw.githubusercontent.com/huanlin-labs/dsh-skill-cockpit/main/docs/checkup.png)
 
-![列表页：顶部体检摘要条 + 每行四态](docs/list.png)
+![列表页：顶部体检摘要条 + 每行四态](https://raw.githubusercontent.com/huanlin-labs/dsh-skill-cockpit/main/docs/list.png)
 ## 装配
 
 ```bash
