@@ -1,3 +1,10 @@
+## 0.11.3 — 2026-10-24
+
+- **删掉「检查更新 / 一键更新」整块功能**：本机 32 个技能里 30 个没有任何来源记录（无 `.git`、无 `upstreams.json`、`skills-lock.json` 也对不上），且多数被本机改过（中文化 + `SKILL.md.bak`），"逐字节比对"只会全报有更新、一键覆盖本地改动。功能无价值且有风险，按户主决定删除。
+- 删除：`lib/update.js`、`bin/check-updates.mjs`、`POST /update/check`、`POST /update/apply`、`GET /update/report`（30 → 27 条路由）、面板工具栏的更新块与全部 `update.*` 词条。
+- 保留：更新时旧版的暂存残壳仍在「回收站」列出并可一键彻底删除（`lib/parked.js`）。
+- 回收站「彻底删除」：先递归去只读 + 3 轮重试（0.11.2），失败改报人话。
+
 # Changelog
 
 All notable changes to this project are documented here.

@@ -199,31 +199,3 @@ node test/run-all.mjs [报告目录]
 
 MIT。
 
-
-## 上游更新（0.11.0）
-
-skill 没有 npm 那种版本号与通知 —— 上游有没有变，只能拿内容比。
-
-- **检查更新**：按技能目录往上找 git 工作树，取 `origin` 与相对路径；用 blob 过滤的浅克隆只拉这个技能的文件，与装着的那份逐字节比较。
-- **更新**：旧目录整份复制进回收站 → 用上游那份替换。已是最新则不动。
-- **无上游**：目录不在任何 git 仓库里（例如从别处拷来的），此时可在 `<DSH home>/skill-cockpit/upstreams.json` 里补地址：
-
-```json
-{ "my-skill": { "url": "https://github.com/owner/repo", "path": "skills/my-skill" } }
-```
-
-网络不通时按钮会报出 git 的原始错误，不会假装「已最新」。
-
-### 不开会话也能查（0.11.1）
-
-> 本机现状：计划任务已按户主决定删除（2026-10-24）。脚本仍可手动运行，或改天再挂。
-
-比对是插件自己的 Node 代码在做，**不调用任何模型，0 token、0 元**。要它在你不在时也跑，用 Windows 计划任务：
-
-```bat
-schtasks /create /tn dsh-skill-cockpit-update-check /sc daily /st 03:30 /f ^
-  /tr "\"C:\Program Files\nodejs\node.exe\" \"<插件目录>\bin\check-updates.mjs\""
-```
-
-结果写到 `<DSH home>/skill-cockpit/update-report.json`；面板一打开就读这份报告，不用等。
-改时间 `schtasks /change /tn … /st 09:00`，删除 `schtasks /delete /tn … /f`。
