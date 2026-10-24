@@ -1,6 +1,6 @@
 # dsh-skill-cockpit
 
-> **v0.12.1 · 已发布 npm [`dsh-skill-cockpit@0.12.1`](https://www.npmjs.com/package/dsh-skill-cockpit)** ｜ `npm test` 12/12 套件全绿 ｜ MIT
+> **v1.0.0 · 已发布 npm [`dsh-skill-cockpit@1.0.0`](https://www.npmjs.com/package/dsh-skill-cockpit)** ｜ `npm test` 12/12 套件全绿 ｜ MIT
 
 DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加一个「技能」入口，
 点开是**主区一整页**，列出本机**全部**技能、**按技能开关**，并接「未安装技能索引」做第二跳。
@@ -15,14 +15,16 @@ DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加�
 ## 安装
 
 ```bash
-npm i dsh-skill-cockpit@0.12.1      # 或 pnpm add / yarn add
+npm i dsh-skill-cockpit@1.0.0      # 或 pnpm add / yarn add
 ```
 
 装完在 profile 的 bundles 里加上 `dsh-skill-cockpit`（或 `cordis.patch.yml` 用 `insert:` 挂一行），重启 DSH 即可在左上导航看到「技能」。
 本机开发可直接 `link:D:/插件/dsh-skill-panel`。
 
-**同时给 dsh 一个工具**：`skill_panel`（11 个动作：list / read / create / update / delete / toggle / repair / backup / trash_list / trash_restore / trash_purge）。
-以后「把某技能停掉」「新建一个技能」这类话，模型直接调工具改磁盘，不必点面板；删除类动作必须显式 `confirm: true`。
+**同时给 dsh 一个工具**：`skill_panel`（20 个动作，覆盖面板全部能力）——
+基础 11 个：`list` / `read` / `create` / `update` / `delete` / `toggle` / `repair` / `backup` / `trash_list` / `trash_restore` / `trash_purge`；
+二期 9 个：后备库 `vault_list` / `vault_put` / `vault_install`、DSH 预设 `preset_list` / `preset_mount` / `preset_unmount`、批量四态 `mode_set`、`usage`、`checkup`。
+以后「把某技能停掉」「新建一个技能」「这套技能全关掉」「最近谁在被调用」这类话，模型直接调工具改磁盘，不必点面板；破坏性动作必须显式 `confirm: true`。
 
 ## 它解决什么
 
@@ -211,7 +213,7 @@ node test/run-all.mjs [报告目录]
 
 MIT。
 
-## 给 dsh 的工具接口（0.12.1）
+## 给 dsh 的工具接口（1.0.0）
 
 面板是给人看的；平时更常用的是**让 dsh 直接改技能**。插件因此注册了一个工具 `skill_panel`（与任务板同一套路，不需要 SKILL.md），模型可以自己调：
 
@@ -226,5 +228,10 @@ MIT。
 | `repair` | 修结构问题（缺 frontmatter、名字不合法等） |
 | `backup` | 备份单个或全部技能 |
 | `trash_list` / `trash_restore` / `trash_purge` | 回收站：列出 / 还原 / 彻底删除（后者需 `confirm: true`） |
+| `vault_list` / `vault_put` / `vault_install` | 后备库：看名单 / 存进去（= 本机删除 + 名单记一行，需 `confirm: true`）/ 按名单装回来 |
+| `preset_list` / `preset_mount` / `preset_unmount` | DSH 预设：列预设 / 把技能以 junction 挂进去 / 摘掉（挂载改动重启 dsh 生效） |
+| `mode_set` | 批量切四态（`on` / `user-only` / `model-only` / `off`）；`scope: exclusive` 当白名单，清单外全关；不带 `confirm: true` 只返回预演 |
+| `usage` | 从会话日志统计每个技能被调多少次（默认复用索引，`refresh: true` 重扫） |
+| `checkup` | 体检：描述过短 / 目录名不符 / 正文疑似为空 / 同名被遮蔽 |
 
 边界与面板一致：只写用户级技能根（`~/.dsh/skills`、`~/.agents/skills`），项目级技能只读；删除一律先整份复制进回收站，绝不半删。

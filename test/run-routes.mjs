@@ -18,6 +18,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { zstdCompressSync } from 'node:zlib';
 import { apply, name, inject } from '../lib/index.js';
+import { ACTIONS } from '../lib/tools.js';
 
 const reportDir = resolve(process.argv[2] ?? join(import.meta.dirname, 'out'));
 const pkgVersion = JSON.parse(
@@ -118,7 +119,19 @@ check('导出 name = dsh-skill-cockpit', name === 'dsh-skill-cockpit', name);
 check('inject 只声明 tools（用到的服务先声明，不探测）', JSON.stringify(inject) === JSON.stringify(['tools']), JSON.stringify(inject));
 check('注册了 27 条路由', registered.length === 27, registered.map((r) => r.path).join(' '));
 check('注册了 skill_panel 工具', toolsRegistered.length === 1 && toolsRegistered[0]?.name === 'skill_panel', toolsRegistered.map((x) => x.name).join(' '));
-check('skill 工具声明了 11 个动作', (toolsRegistered[0]?.parameters?.properties?.action?.description ?? '').trim().split('\n').length === 11);
+const actionLines = (toolsRegistered[0]?.parameters?.properties?.action?.description ?? '').trim().split('\n');
+check(
+  'skill 工具动作表与 ACTIONS 对齐',
+  actionLines.length === ACTIONS.length &&
+    ACTIONS.every((action) => actionLines.some((line) => line.startsWith(`${action}:`))),
+  `${actionLines.length}/${ACTIONS.length}`,
+);
+check(
+  '二期动作齐全（后备库 / 预设 / 批量四态 / 用量 / 体检）',
+  ['vault_list', 'vault_put', 'vault_install', 'preset_list', 'preset_mount', 'preset_unmount', 'mode_set', 'usage', 'checkup'].every(
+    (action) => ACTIONS.includes(action),
+  ),
+);
 check('skill 工具带 execute 与 render', typeof toolsRegistered[0]?.execute === 'function' && typeof toolsRegistered[0]?.output?.render === 'function');
 check(
   '四态路由 /mode 已注册',

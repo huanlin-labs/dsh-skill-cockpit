@@ -1,3 +1,16 @@
+## 1.0.0 — 2026-10-24
+
+- **为什么是 1.0**：面板能力（六类技能根 / 四态开关 / 回收站 / 后备库 / 预设 / 用量 / 体检）与模型接口（`skill_panel` 20 个动作）都已闭环，按 semver 承诺稳定：**以后新增动作 = 1.x（minor），删改动作名或参数 = 2.0**。V3 只是下一轮升级，不是重新起头。
+
+- **二期：把面板剩下的能力交给 dsh**。工具 `skill_panel` 的动作从 11 个扩到 20 个：
+  - 后备库：`vault_list` / `vault_put`（= 本机删除 + 名单记一行，需 `confirm: true`）/ `vault_install`（来源是 git 就下载，是本机目录就复制）。
+  - DSH 预设：`preset_list` / `preset_mount`（只建 junction，技能本体不动）/ `preset_unmount`（只删链接，真实目录一律拒绝）。
+  - `mode_set`：批量切 `on` / `user-only` / `model-only` / `off`，支持 `scope: exclusive` 白名单语义；不带 `confirm: true` 只返回预演（列出每个技能 from → to）。
+  - `usage`：会话日志里的调用统计（默认复用已有索引，`refresh: true` 重扫）。
+  - `checkup`：体检清单（描述过短 / 目录名不符 / 正文疑似为空 / 同名遮蔽）。
+- 参数仍然只有一个 `action` + 同构字段；`create` / `update` 的简介参数固定叫 `summary`（`description` 在 JSON Schema 里是注解关键字，0.12.0 已因此炸过一次）。
+- 测试：把写死的「11 个动作」换成「动作表与 ACTIONS 逐条对齐」+「二期动作齐全」两条断言；12/12 套件通过。
+
 ## 0.12.2 — 2026-10-24
 
 - **文档**：README 顶部过期状态（v0.6.8 / npm 0.2.3）改成 0.12.2 实况；新增「安装」小节（npm i + bundle 挂载）；截图改绝对地址，npm 页也能显示。
