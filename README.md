@@ -58,6 +58,22 @@ Restart DSH after installing; the page sits in the left nav between **Plugins** 
   client half declares only `slots`, so the plugin is not subject to DSH's compatibility-exemption
   gate and does not touch the credentials surface.
 
+## How it compares (source-level check, 2026-10-08)
+
+Three mechanism differences we can actually stand behind — no adjectives:
+
+| | this plugin | dsh-skill-hub | dsh-skill-mcp-panel | dsh-echocat-skill-panel |
+|---|---|---|---|---|
+| Seat | full page in the app nav (`sidebar.panellist`, order 5) | settings-page "skill hub" | side panel, two tabs | bars + panels + a report column |
+| Toggle mechanism | rename `SKILL.md ↔ .disabled` (the only disk write) | rename + sidecar reconciliation | no file change: overlay JSON + overlay provider | move the skill dir out of the watched root |
+| After you uninstall it | **state persists** (the filename *is* the state) | persists (reconciled at boot) | **all toggles lost** (state lives in plugin storage) | persists |
+| Model-facing tool | **yes: `skill_panel`, 20 actions** | none found | none found | none found |
+| Dependencies | **zero deps / zero peers**, no build step | TS build | no build step | no build step |
+| Skill roots | **all six root kinds scanned** + why a skill is invisible; project roots read-only | diagnostics + one-click fix (ahead of us here) | — | — |
+
+> Cells come from reading those repos' source on 2026-10-08; they iterate fast — check their repos.
+> We do **not** claim a unique nav seat: `@linxin666/dsh-client-ui-skill-explorer` also uses `sidebar.panellist` (corrected 2026-10-20).
+
 ## The four pages
 
 The panel is one page in the nav with four views along the top:
