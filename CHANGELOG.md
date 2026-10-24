@@ -1,3 +1,10 @@
+## 0.12.0 — 2026-10-24
+
+- **给 dsh 的工具接口**：注册单个工具 `skill`（action 枚举 11 个：list / read / create / update / delete / toggle / repair / backup / trash_list / trash_restore / trash_purge）。以后「把 X 停掉」「新建一个 Y 技能」这类话，dsh 直接调工具改磁盘，不用点面板。
+- 与任务板同一套路：工具由插件注册（`ctx.tools.register`），**不需要 SKILL.md**；`inject` 从空数组改为 `["tools"]`（先声明再使用，不做探测）。
+- `delete` / `trash_purge` 必须带 `confirm: true`，且删除前整份进回收站；只写用户级技能根，项目级只读。
+- 顺手修：同一秒内连删同名技能会撞回收站目录名，现在顺延 `-2`、`-3`，不覆盖也不报错。
+
 ## 0.11.3 — 2026-10-24
 
 - **删掉「检查更新 / 一键更新」整块功能**：本机 32 个技能里 30 个没有任何来源记录（无 `.git`、无 `upstreams.json`、`skills-lock.json` 也对不上），且多数被本机改过（中文化 + `SKILL.md.bak`），"逐字节比对"只会全报有更新、一键覆盖本地改动。功能无价值且有风险，按户主决定删除。

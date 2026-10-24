@@ -199,3 +199,20 @@ node test/run-all.mjs [报告目录]
 
 MIT。
 
+## 给 dsh 的工具接口（0.12.0）
+
+面板是给人看的；平时更常用的是**让 dsh 直接改技能**。插件因此注册了一个工具 `skill`（与任务板同一套路，不需要 SKILL.md），模型可以自己调：
+
+| action | 作用 |
+|---|---|
+| `list` | 列出全部技能（名字 / 来源 / 启用状态 / 路径） |
+| `read` | 读一个技能（简介 + 正文） |
+| `create` | 新建技能（写 SKILL.md） |
+| `update` | 改简介 / 正文 / 适用场景（旧文件自动备份） |
+| `delete` | 删除，整份进回收站（需 `confirm: true`） |
+| `toggle` | 启用 / 停用（只改入口文件名，`plan: true` 可预览） |
+| `repair` | 修结构问题（缺 frontmatter、名字不合法等） |
+| `backup` | 备份单个或全部技能 |
+| `trash_list` / `trash_restore` / `trash_purge` | 回收站：列出 / 还原 / 彻底删除（后者需 `confirm: true`） |
+
+边界与面板一致：只写用户级技能根（`~/.dsh/skills`、`~/.agents/skills`），项目级技能只读；删除一律先整份复制进回收站，绝不半删。
