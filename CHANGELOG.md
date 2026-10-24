@@ -1,3 +1,8 @@
+## 0.12.1 — 2026-10-24
+
+- **修**：工具改名 `skill` → `skill_panel`。0.12.0 用 `skill` 与宿主自带的同名工具撞车，注册被吞、列表里看不到（实测 `Tools/listTools` 只有内置那个）。
+- 注册后补一行启动日志 `[skill-cockpit] tool registered: skill_panel`，以后再撞名一眼可见。
+
 ## 0.12.0 — 2026-10-24
 
 - **给 dsh 的工具接口**：注册单个工具 `skill`（action 枚举 11 个：list / read / create / update / delete / toggle / repair / backup / trash_list / trash_restore / trash_purge）。以后「把 X 停掉」「新建一个 Y 技能」这类话，dsh 直接调工具改磁盘，不用点面板。
