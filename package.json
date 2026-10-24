@@ -38,6 +38,7 @@
   "files": [
     "lib",
     "locale",
+    "scripts",
     "test",
     "!test/out",
     "cordis.patch.yml",
@@ -49,7 +50,8 @@
     "node": ">=20.11"
   },
   "scripts": {
-    "test": "node test/run-all.mjs"
+    "test": "node test/run-all.mjs",
+    "release:check": "node scripts/release-check.mjs"
   },
   "dsh": {
     "bundle": {
