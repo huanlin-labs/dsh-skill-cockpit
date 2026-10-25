@@ -74,6 +74,16 @@ Three mechanism differences we can actually stand behind — no adjectives:
 > Cells come from reading those repos' source on 2026-10-08; they iterate fast — check their repos.
 > We do **not** claim a unique nav seat: `@linxin666/dsh-client-ui-skill-explorer` also uses `sidebar.panellist` (corrected 2026-10-20).
 
+## On = auto-loaded
+
+Flip a skill on and, whenever a matching task shows up, its body is placed **directly into that turn's context**
+(`agent/pre-step`) — the model no longer has to remember to call `skill_panel`, and you do not write any rules.
+
+- Three sensitivities: strict 4KB / standard 8KB / loose 16KB per skill, 24KB per session;
+- each skill is injected at most once per session; `</system-reminder>` is always escaped;
+- **off by default**; drive it with the `skill_autoload` tool: `action=on|off` / `tier` / `except` / `status` / `probe`;
+- any failure only skips that turn — your conversation is never broken.
+
 ## The four pages
 
 The panel is one page in the nav with four views along the top:

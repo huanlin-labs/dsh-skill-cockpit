@@ -59,6 +59,16 @@ npm i dsh-skill-cockpit@1.0.0      # 或 pnpm add / yarn add
 > 口径：同类三列来自 2026-10-08 对各自仓库源码的实查；同类插件迭代快，**以它们自己的仓库为准**。
 > 我们**不主张**「独占导航席位」——`@linxin666/dsh-client-ui-skill-explorer` 也挂 `sidebar.panellist`（2026-10-20 实查更正）。
 
+## 开 = 自动加载
+
+技能拨到「全开」后，相关任务出现时，插件会在这一轮对话里**直接放进技能正文**（`agent/pre-step`）——
+模型不用再想起「该调 skill_panel 读一下」，你也不用写任何规则。
+
+- 三档灵敏度：严格 4KB / 标准 8KB / 宽松 16KB（单技能上限），单会话预算 24KB；
+- 同一技能同会话只注入一次；`</system-reminder>` 一律转义；
+- **默认关闭**，工具 `skill_autoload`：`action=on|off` / `tier` / `except` / `status` / `probe`；
+- 出任何问题只跳过这一轮，不影响正常对话。
+
 ## 四个页面
 
 面板是导航里的一页，顶部四个视图：
