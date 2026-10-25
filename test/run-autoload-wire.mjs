@@ -7,7 +7,7 @@
  *   - planInjection：关着不动、开着才注入、注入位置正确、不修改原数组
  */
 import { strict as assert } from 'node:assert';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, utimesSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, utimesSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
@@ -144,6 +144,15 @@ run('无关问题不注入', () => {
 run('probe 落盘', () => {
   const file = writeProbe(home, { hello: 1 });
   assert.ok(file && file.endsWith('prestep-probe.json'));
+});
+
+run('skill_autoload 工具定义带 output（缺了 register 会静默失败）', () => {
+  const src = readFileSync(new URL('../lib/index.js', import.meta.url), 'utf8');
+  const at = src.indexOf("name: 'skill_autoload'");
+  assert.ok(at > 0, '找不到 skill_autoload 定义');
+  const tail = src.slice(at, src.indexOf('execute:', at));
+  assert.ok(tail.includes('output:'), '必须定义 output');
+  assert.ok(tail.includes('render:'), 'output 必须带 render');
 });
 
 rmSync(home, { recursive: true, force: true });

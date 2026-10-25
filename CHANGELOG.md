@@ -1,3 +1,11 @@
+## 1.1.2 — 2026-10-25
+
+### 修复：`skill_autoload` 工具在真机上根本没注册
+
+- 现象：1.1.0/1.1.1 文档都写着「用 `skill_autoload` 一句话开关自动加载」，但真机工具清单里查不到它（`skill_panel` 正常）。
+- 根因：`ToolDefinition` 必须带 `output: { schema, render }`；`skill_autoload` 少了这一段，`ctx.tools.register()` 抛错，而外层 `try/catch` 只打一行日志就吞掉 —— 表现就是「工具没出现」。
+- 修法：补上 `output`（与 `skill_panel` 同形），并加源码级回归断言，防止再漏。
+
 ## 1.1.1 — 2026-10-25
 
 ### 修复：小技能库下「词对上了也不触发」
