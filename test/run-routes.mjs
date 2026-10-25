@@ -42,6 +42,7 @@ const fakeWebServer = {
     return () => {};
   },
 };
+const preStepHandlers = [];
 const ctx = {
   // cordis runs the callback immediately and disposes its return value later.
   effect(callback) {
@@ -63,6 +64,11 @@ const ctx = {
   },
   inject(names, callback) {
     log.push(`ctx.inject(${JSON.stringify(names)})`);
+    return () => {};
+  },
+  // 1.1.0: 自动加载钩子走 ctx.on；cordis 的 ctx 一定有 on，这里记下来供断言
+  on(event, handler) {
+    preStepHandlers.push({ event, handler });
     return () => {};
   },
 };
@@ -150,6 +156,7 @@ check(
 );
 check('每条路由都是 kind=exact', registered.every((r) => r.kind === 'exact'));
 check('只通过 ctx.get 访问 ctx 服务', log.every((entry) => entry.startsWith("ctx.get('webServer')")), log.join(' '));
+check('注册了 agent/pre-step 自动加载钩子', preStepHandlers.some((h) => h.event === 'agent/pre-step'));
 
 // ---- fake http ------------------------------------------------------------
 

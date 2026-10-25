@@ -28,6 +28,9 @@ const suites = [
   ['一键修', join(import.meta.dirname, 'run-repair.mjs')],
   ['备份', join(import.meta.dirname, 'run-backup.mjs')],
   ['模板', join(import.meta.dirname, 'run-template.mjs')],
+  // 1.1.0：自动加载（匹配引擎 + pre-step 接线）
+  ['自动加载', join(import.meta.dirname, 'run-autoload.mjs')],
+  ['自动加载接线', join(import.meta.dirname, 'run-autoload-wire.mjs')],
 ];
 
 const results = [];
