@@ -252,6 +252,23 @@ run('message shapes', testMessageShapes);
 run('insertInjected', testInsert);
 run('normalizeSettings', testSettings);
 
+// D. 小技能库回归（2026-10-25 从 npm 干净安装里实测到：只装 1 个技能时 IDF 被压平，
+//    词对上了也不触发）。装三五个技能的用户绝不该比装三十个的用户更难触发。
+run('小技能库也能命中', () => {
+  const one = [{ name: 'office-xlsx', description: 'Read, create, edit, and validate Excel workbooks and formulas (.xlsx).' }];
+  const r = selectSkills({ skills: one, query: '帮我把这个 Excel 表格的公式重算一遍', tier: 'standard' });
+  assert.deepEqual(r.picked.map((p) => p.name), ['office-xlsx'], '单技能语料也要命中');
+  const three = [
+    ...one,
+    { name: 'pdf', description: '处理 PDF：读取、合并、拆分、加水印。' },
+    { name: 'git-workflow', description: 'Git 规范：提交信息格式、分支策略、PR 最佳实践。' },
+  ];
+  const r3 = selectSkills({ skills: three, query: '把这个 PDF 拆成单页', tier: 'standard' });
+  assert.ok(r3.picked.some((p) => p.name === 'pdf'), '三个技能时仍要命中');
+  const noise = selectSkills({ skills: three, query: '今天天气怎么样', tier: 'loose' });
+  assert.equal(noise.picked.length, 0, '小语料也不能乱命中');
+});
+
 // A. 召回
 let hit = 0;
 const missDetail = [];
