@@ -76,13 +76,40 @@ Three mechanism differences we can actually stand behind — no adjectives:
 
 ## On = auto-loaded
 
-Flip a skill on and, whenever a matching task shows up, its body is placed **directly into that turn's context**
-(`agent/pre-step`) — the model no longer has to remember to call `skill_panel`, and you do not write any rules.
+**What it does**: before each turn (`agent/pre-step`) the plugin matches your message against every skill's
+`description`; a hit puts that skill's **body** straight into this turn's context (a system reminder) —
+the model no longer has to remember to call `skill_panel`, and you write no rules.
 
-- Three sensitivities: strict 4KB / standard 8KB / loose 16KB per skill, 24KB per session;
-- each skill is injected at most once per session; `</system-reminder>` is always escaped;
-- **off by default**; drive it with the `skill_autoload` tool: `action=on|off` / `tier` / `except` / `status` / `probe`;
-- any failure only skips that turn — your conversation is never broken.
+**Master switch + three sensitivities** (right side of the toolbar; the tiers only matter while it is On):
+
+| Tier | Score threshold | Description hits required | Body cap per skill |
+|---|---|---|---|
+| strict | ≥ 4.0 | 2 | 4 KB |
+| standard (default) | ≥ 2.5 | 1 | 8 KB |
+| loose | ≥ 1.5 | 1 | 16 KB |
+
+Shared caps: **at most 3 skills per turn, 24 KB total**.
+A skill is injected at most once per session; `</system-reminder>` is always escaped; any failure only skips that turn.
+
+**Per-row "Must" (pin)**: ignores relevance and goes to the front of every turn's injection (still bound by the
+per-skill cap and the total budget); it does nothing while the skill itself is Off. Lists live in
+`~/.dsh/skill-cockpit/autoload.json` (`pinned` / `perSkillOff`).
+
+**What turning it on costs (measured, not sugar-coated)**:
+
+- **Context**: every hit injects the body. A 7.9 KB skill such as `pdf` ≈ 2–3k tokens; the loose tier can reach
+  24 KB ≈ 6–8k tokens per turn, and it competes for attention every turn.
+- **False positives**: on this machine's real skill set, **1 in 10** queries that should not match still got a skill injected.
+- **A hit is not compliance**: real-set recall is **7/10 (70%)** — the body is in context, the model may still ignore it.
+- **They crowd each other out**: only 3 skills per turn; too many pins push genuinely relevant skills out of the budget.
+- strict barely ever fires; loose is noisy.
+
+**Recommendation**: keep standard + On; turn it on for document/paper work; keep pins to 1–2.
+Turning it Off keeps every skill available — the model can still call one itself, it just gets no body pushed in.
+
+**Why not 100%**: the host exposes no public "plugin writes into the system prompt" channel, so the ceiling is
+"put the body into context each turn". That is why the wording is **high-confidence triggering**, never "forced/guaranteed".
+Tool `skill_autoload`: `action=on|off` / `tier` / `except` / `pin` / `unpin` / `status` / `probe` / `eval`.
 
 ## The four pages
 

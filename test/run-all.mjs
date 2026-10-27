@@ -31,6 +31,8 @@ const suites = [
   // 1.1.0：自动加载（匹配引擎 + pre-step 接线）
   ['自动加载', join(import.meta.dirname, 'run-autoload.mjs')],
   ['自动加载接线', join(import.meta.dirname, 'run-autoload-wire.mjs')],
+  // 1.2.0：渲染冒烟（点击「新建技能」必须真出创建表单，白屏回归挡在这里）
+  ['渲染冒烟', join(import.meta.dirname, 'render-create.mjs')],
 ];
 
 const results = [];
