@@ -158,6 +158,14 @@ const createButton = buttons.find((node) => textOf(node).includes('新建技能'
 if (!createButton) throw new Error('首屏找不到「新建技能」按钮')
 if (typeof createButton.props.onClick !== 'function') throw new Error('「新建技能」按钮没有 onClick')
 
+// 1.5) 工具栏的「一键翻译」必须是中文（2026-10-27 实犯：zh 字典漏了 gloss.* 五个键，
+//      宿主 locale 回落到英文，按钮显示成「Translate」）
+const translateButton = buttons.find((node) => textOf(node).includes('一键翻译'))
+if (!translateButton) throw new Error('首屏找不到「一键翻译」按钮（zh 字典可能漏了 gloss.translate）')
+if (buttons.some((node) => textOf(node).trim() === 'Translate')) {
+  throw new Error('工具栏还残留英文「Translate」按钮（zh 词条没生效）')
+}
+
 // 2) 点它 → 应当渲染出创建表单，而不是抛异常
 createButton.props.onClick()
 for (let guard = 0; rerenderRequested && guard < 20; guard += 1) {

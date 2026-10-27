@@ -123,7 +123,7 @@ apply(ctx, {
 
 check('导出 name = dsh-skill-cockpit', name === 'dsh-skill-cockpit', name);
 check('inject 只声明 tools（用到的服务先声明，不探测）', JSON.stringify(inject) === JSON.stringify(['tools']), JSON.stringify(inject));
-check('注册了 30 条路由', registered.length === 30, registered.map((r) => r.path).join(' '));
+check('注册了 33 条路由', registered.length === 33, registered.map((r) => r.path).join(' '));
   {
     const paths = registered.map((r) => r.path);
     const dups = paths.filter((p, i) => paths.indexOf(p) !== i);
@@ -532,3 +532,5 @@ console.log(`\n报告已写：${join(reportDir, 'routes-report.json')}`);
 const failed = checks.filter((c) => !c.ok);
 console.log(`\n=== 路由自测：${checks.length - failed.length}/${checks.length} 通过 ===`);
 process.exit(failed.length === 0 ? 0 : 1);
+
+
