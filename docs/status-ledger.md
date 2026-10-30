@@ -32,15 +32,15 @@
 
 | 项 | 判定 | 说明 |
 |---|---|---|
-| GitHub Actions 首跑 | **发现真缺 → 本轮已修** | 历史 3 次 `ci` 全 failure（15s）：① 5 个测试文件写死 `file:///D:/插件/...` 绝对导入；② `run-routes` / `run-usage` 静态导入 `zstdCompressSync`（Node 20 没有）；③ `run-toggle` 在干净 home 直接 exit 1。三处已改：相对导入、zstd 可选（无 API 时写纯文本 fixture / 明确 SKIP）、缺技能根自动建空目录。 |
-| 本机复验 | **通过（含整套跨版本）** | Node 24（系统）：`19/19`；Node 20.20.2：`19/19`；Node 22.11.0：`19/19`；三者 `verify:install` 均 `13/13`。⚠️ `npx node@22.23.4`（Windows 便携版）整套跑出 `16/19`：`回收站`、`备份` 两个套件**原生崩溃**（exit 3221226505 = 0xC0000409，未进入任何断言）；同代码 20.20.2 / 22.11.0 / 24 全绿 ⇒ 判为该便携构建问题，非插件代码；CI 用官方 `setup-node`，仍待推送后确认。 |
+| GitHub Actions 首跑 | **发现真缺 → 已修** | 历史 `ci` 全 failure：① 5 个测试文件写死 `file:///D:/插件/...` 绝对导入；② `run-routes` / `run-usage` 静态导入 `zstdCompressSync`（Node 20 没有）；③ `run-toggle` 在干净 home 直接 exit 1。三处已改：相对导入、zstd 可选（无 API 时写纯文本 fixture / 明确 SKIP）、缺技能根自动建空目录。 |
+| 本机复验 | **通过（含整套跨版本）** | Node 24（系统）：`19/19`；Node 20.20.2：`19/19`；Node 22.11.0：`19/19`；三者 `verify:install` 均 `13/13`。Windows Node 22 上的 `0xC0000409` 复现于硬编码 `D:/临时` 的测试沙箱；改为 `os.tmpdir()` 后本机全绿，CI 官方 `setup-node` 结果见下。 |
 | npm `1.5.0` | **已发布可解析** | `npm view dsh-skill-cockpit dist-tags.latest` = 1.5.0；GitHub Release `v1.5.0` 已建。 |
 | `npm run release:check` | **10 PASS / 0 FAIL / 0 UNKNOWN** | 2026-10-30 实跑：package 1.5.0、CHANGELOG 顶部 1.5.0、npm latest 1.5.0、本地/远端 tag v1.5.0、GitHub Release、keywords、repository、bundle patch、topics 全 PASS；结论「四处一致，可以发版」。 |
 | tag 触发的 `registry-tag` 任务 | **尚未跑过** | 下次打 tag 时验证。 |
 
 ## 五、边界说明
 
-- Windows 桌面 DSH = 唯一真机验证平台；macOS / Linux 只在 CI 跑语法与 `verify:install`（本轮修完后 Linux 的**套件**也在 CI 里跑）。
+- Windows 桌面 DSH = 唯一真机验证平台；macOS / Linux 在 CI 跑语法、全量套件与 `verify:install`；Linux 另在本机 WSL（Ubuntu 24.04，Node 24.22.2）跑过 19/19。
 - 本文件只记判定，不重复 README 的功能说明。
 
 ## 六、2026-10-27 续修校准

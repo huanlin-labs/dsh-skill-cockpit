@@ -8,8 +8,8 @@
 | 平台 / 入口 | 能力档位 | 判断依据 | 验证状态 |
 |---|---|---|---|
 | DSH 桌面版（Windows） | **完整**：页面 + `skill_panel` 工具 + 全部 HTTP 路由 | 本机 Windows 11 真机装 1.4.1；1.5.0 源码已真机重启加载，左侧导航出现「技能」，翻译/一键修/体检均真机点过；`docs/` 与本仓库 `test/` 记录在案 | 已验证（真机会话） |
-| DSH 桌面版（macOS） | **未知**：插件机制同构，但没人跑过真机会话 | CI 里已配 `syntax` / `verify-install` 两个 job 覆盖 macOS，但**还没推送跑过**；本机也没有 macOS | 未验证 |
-| DSH 桌面版（Linux） | **未知**：同上；本机 WSL 里连 node 都没有（`npm` 是 Windows 侧互操作），所以连本地套件都没跑过 | CI 里已配 `syntax` / `verify-install` 覆盖 ubuntu，但**还没推送跑过** | 未验证 |
+| DSH 桌面版（macOS） | **未知**：插件机制同构，但没人跑过真机会话 | CI 全量套件 + `verify:install` 已跑；本机没有 macOS，未做真实 DSH 会话 | 单测通过、真机未验 |
+| DSH 桌面版（Linux） | **未知**：同上 | CI 全量套件 + `verify:install` 已跑；本机 WSL（Ubuntu 24.04，Node 24.22.2）全量 19/19 通过；未做真实 DSH 会话 | 单测通过、真机未验 |
 | 其他 harness（Claude Code / Zcode / opencode / pi …） | **不支持，且不打算支持** | 技能根只认 DSH 解析出的六个来源；别的 harness 目录属于它们的隔离区，本插件不读不写 | 未开始 |
 
 ## 二、"接上"到底意味着什么（能力档位定义）
@@ -32,7 +32,7 @@
 
 - `npm test` —— 19/19 套件（其中 doctor 套件 23 项，含 `--dry-run` 不落盘、`--report` 写出 JSON、`zstd` 能力检查）。
 - `npm run verify:install` —— 13 项断言：pack → 空目录安装 → 装机副本启动 → `/ping` → 装机副本 `doctor --version` → 空 home 先报需要修 → `--fix` → 复检全绿 → 再 `--fix` 仍全绿（幂等）→ 状态目录隔离。
-- CI（已写入 `.github/workflows/ci.yml`，**尚未推送跑过**）：语法 3 平台 × Node 20/22/24；全量自测 ubuntu + windows × 20/22/24；`verify:install` 3 平台 × 20/22/24；推 tag 时核对 registry `latest`。
+- CI（`.github/workflows/ci.yml`）：语法 3 平台 × Node 20/22/24；全量自测 ubuntu + macOS + windows × 20/22/24；`verify:install` 3 平台 × 20/22/24；推 tag 时核对 registry `latest`。
 
 ## 五、它看不见什么
 
@@ -40,3 +40,18 @@
 - 技能文件被别的东西改写（本插件只在用户点「一键修」/「新建」/「保存」时写）。
 - 调用次数的全量：只统计会话日志里 `tool-call`（`name: "skill"`）这一个形状。
 - 译文质量：翻译来自免费公共接口，只保证"没中文的补上中文"，不保证语义精确。
+
+## 六、六个通道逐条判定（结论：一个都不接）
+
+本插件是 **DSH 的 UI 插件**（左侧导航页 + `skill_panel` 工具 + HTTP 路由），不是拦截器；下面六个通道没有等价宿主面，硬接只会变成假适配器。
+
+| 通道 | 能力档位 | 判断依据 |
+|---|---|---|
+| Claude Code | **做不到** | 没有 DSH 的 `sidebar.panellist` / 主区 slot；它的 skills 目录也不归本插件管（跨 harness 隔离） |
+| ZCode | **做不到** | 同上；没有可注册的 DSH 页面或工具入口 |
+| Gemini CLI | **做不到** | 同上；CLI 没有 DSH 页面宿主 |
+| opencode | **做不到** | 同上；进程内钩子面向工具调用，不是技能面板 |
+| pi | **做不到** | 同上 |
+| MCP | **做不到** | MCP 只提供工具/资源，不提供 DSH 导航页或主区 slot；把它写成"已接"就是撒谎 |
+
+**为什么不写六个适配器**：适配器的输入是"平台事件 JSON"，输出是"该平台的拒绝/放行格式"——这是门禁类插件的契约。技能面板没有"拒绝一次调用"这个业务，硬造六个 `adapter.js` 只会制造六份无法验证的代码。**正确做法是明确不支持，并把 DSH 内的证据做扎实。**

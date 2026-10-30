@@ -4,7 +4,7 @@
 > 最后更新：2026-10-27。
 
 - [x] **平台矩阵每一格都填了实话，没有"应该可以"**
-      证据：`docs/platforms.md`。四个入口：Windows 真机（已验证）、macOS（未验证：CI job 已配但没跑过）、Linux（同）、别的 harness（不支持）。
+      证据：`docs/platforms.md`。四个入口：Windows 真机（已验证）、macOS（单测通过、真机未验）、Linux（单测通过、真机未验）、别的 harness（不支持）。
 
 - [x] **每个平台都有 adapter + 单测 + 接线 + doctor + 文档**
       本插件只有 DSH 一个宿主，按等价物落地：唯一入口 `lib/index.js`、19 个测试套件、装配交给 DSH（插件不改 profile）、`dsh-skill-cockpit-doctor`、`docs/platforms.md` + 双语 README。
@@ -18,7 +18,7 @@
       证据：`npm run verify:install` → `13 通过 / 0 失败`，其中包含"空 home 先报需要修"、"`--fix` 后复检全绿"、"再 `--fix` 仍全绿（幂等）"、"装机副本 doctor --version 输出包名+版本"。
 
 - [ ] **三平台 CI 全绿，tag 那趟还核对了 registry 版本**
-      状态：**未做/未验**。工作流已写好（语法 3 平台 × 20/22/24；套件 ubuntu+windows；verify:install 3 平台；tag job 核对 registry `latest`），但仓库**还没 push 过**，GitHub 上一次都没跑。**没有绿之前不勾。**
+      状态：**部分验证**。工作流已跑：语法 / 全量套件 / `verify:install` 三平台 × Node 20/22/24；**tag job 尚未在推 tag 时跑到**。**没有绿之前不勾。**
 
 - [x] **入口判定、`--version` 在参数解析之前**
       `bin/cockpit-doctor.mjs` 顶部先处理 `--version` / `-v`，再解析其它参数；`test/run-doctor.mjs` 有对应断言。本插件没有"符号链接入口判定"的场景（没有 argv[1] 自比较逻辑），故该条不适用。
@@ -40,5 +40,5 @@
 
 ## 一句话结论
 
-**9 条里 8 条有证据，1 条（CI 首跑）明确未做。**
+**9 条里 8 条有证据；CI 首跑已跑，tag 那趟仍待验证。**
 没做到"真机跑过一次被拒 + 出包能装能跑"之前，任何地方都不写"支持某某平台"。

@@ -4,21 +4,20 @@
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![tests](https://img.shields.io/badge/tests-19%2F19%20suites-brightgreen)](test)
 
-> **v1.5.0 — runs end-to-end on a real desktop install.**
+> **v1.5.1 — runs end-to-end on a real desktop install.**
 > 19/19 self-test suites, all green · `npm run verify:install` packs the tarball, installs it into an
 > empty directory and boots **that copy** (13/13 checks).
-> Published as [`dsh-skill-cockpit`](https://www.npmjs.com/package/dsh-skill-cockpit); npm `latest` = **1.5.0**.
+> Published as [`dsh-skill-cockpit`](https://www.npmjs.com/package/dsh-skill-cockpit); npm `latest` = **1.5.0** until 1.5.1 is published.
 > (The bare name `dsh-skill-panel` belongs to a different author.)
 
-> **Source vs npm:** the npm `1.4.1` tarball predates the unreleased items in `CHANGELOG.md`.
-> Until the next release, treat those items as source-only.
+> **Source vs npm:** `1.5.1` is the source tree in this checkout; `1.5.0` is the current npm release.
+> The 1.5.1 items are listed at the top of `CHANGELOG.md`.
 
 > **Honest boundary.** This is **not a sandbox**. It manages only the skill roots DSH itself
 > exposes and writes only inside `~/.dsh/skills` and `~/.agents/skills`; it cannot stop other
 > processes, manual edits, or skills invoked outside DSH. CLI / doctor / `verify:install` are
 > covered by automated tests on this Windows machine. Host-half guards added in the unreleased
-> source tree need a DSH restart, and the sidebar entry and main-page slot are confirmed active after a real restart, but a button-by-button visual re-check has **not** been done — treat the visual layer as 未验证 (not yet verified)**. CI is configured
-> but has not run yet.
+> source tree need a DSH restart, and the sidebar entry and main-page slot are confirmed active after a real restart, but a button-by-button visual re-check has **not** been done — treat the visual layer as 未验证 (not yet verified)**. CI runs the full suites and `verify:install` on ubuntu, macOS and Windows × Node 20/22/24; see the Actions tab for the latest result.
 A **skill cockpit for [DSH](https://github.com/deepseek-ai)** (DeepSeek Harness): one page in the
 app-level navigation that shows every skill the machine actually exposes, says **why** a skill is
 missing, and lets you toggle a single skill without editing anything but its entry-file name.
@@ -51,10 +50,10 @@ Exit codes: `0` ready · `1` something to fix · `2` environment problem.
 ## Honest boundaries (read this before trusting anything below)
 
 - **Verified on Windows desktop DSH only.** Every claim here comes from a real DSH desktop install on
-  Windows 11. CI jobs for macOS/Linux **syntax and `verify:install` are configured but have not run yet**;
-  nobody has run a real DSH session on them.
-- **Full test suites are configured for ubuntu + windows, but CI has not run yet.** macOS is only in the
-  syntax and `verify:install` jobs. Nothing here says "all platforms pass".
+  Windows 11. CI runs syntax, the full suites and `verify:install` on macOS/Linux; nobody has run a real
+  DSH session on them.
+- **Full test suites run in CI on ubuntu + macOS + windows.** Passing CI is automated evidence only; it
+  does not replace a real DSH session on those platforms. Nothing here says "all platforms support this".
 - **Translation uses free public endpoints** (MyMemory first, Google as fallback). They rate-limit and
   change without notice; a bulk translation may return fewer items than asked. Nothing is sent anywhere
   except those two services, and only when you press 翻译.

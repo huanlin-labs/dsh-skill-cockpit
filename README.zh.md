@@ -1,10 +1,10 @@
 # dsh-skill-cockpit
 
-> **v1.5.0 · 已发布 npm [`dsh-skill-cockpit@1.5.0`](https://www.npmjs.com/package/dsh-skill-cockpit)** ｜ `npm test` 19/19 套件全绿 ｜ `npm run verify:install` 13/13（pack → 空目录安装 → 用装机副本启动 → /ping 读回版本）｜ MIT
+> **v1.5.1 · 源码待发布**（npm `latest` 暂为 `1.5.0`）｜ `npm test` 19/19 套件全绿 ｜ `npm run verify:install` 13/13（pack → 空目录安装 → 用装机副本启动 → /ping 读回版本）｜ MIT
 
-> **源码 vs npm**：`1.5.0` 已发布，源码与 npm 包一致。
+> **源码 vs npm**：本检出的源码是 `1.5.1`，npm 上当前是 `1.5.0`；1.5.1 的改动见 `CHANGELOG.md` 顶部。
 
-> **诚实边界。** 它**不是沙箱**：只管理 DSH 自己暴露的技能根，只写 `~/.dsh/skills` 与 `~/.agents/skills`；管不了别的进程、手工改动，也管不了绕过 DSH 的调用。CLI / doctor / `verify:install` 在本机 Windows 有自动化实测；源码里新加的宿主半守卫要重启 dsh 才生效，重启后已确认左侧入口与主区页面槽位 active，但**未做逐按钮的视觉复验**，视觉层仍按「未验证」看待。CI 只是配好，还没真跑过。
+> **诚实边界。** 它**不是沙箱**：只管理 DSH 自己暴露的技能根，只写 `~/.dsh/skills` 与 `~/.agents/skills`；管不了别的进程、手工改动，也管不了绕过 DSH 的调用。CLI / doctor / `verify:install` 在本机 Windows 有自动化实测；源码里新加的宿主半守卫要重启 dsh 才生效，重启后已确认左侧入口与主区页面槽位 active，但**未做逐按钮的视觉复验**，视觉层仍按「未验证」看待。CI 已在 ubuntu / macOS / windows × Node 20/22/24 上跑全量套件与 `verify:install`。
 DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加一个「技能」入口，
 点开是**主区一整页**，列出本机**全部**技能、**按技能开关**，并接「未安装技能索引」做第二跳。
 
@@ -34,8 +34,8 @@ npx dsh-skill-cockpit-doctor --report out.json   # 同一份 JSON 写到文件�
 
 ## 诚实边界（先看这段，再看下面）
 
-- **只在 Windows 桌面版 DSH 真机验证过。** 本文所有结论都来自 Windows 11 上的真实 DSH 桌面安装。macOS / Linux 的**语法检查**与 `verify:install` **已在 CI 里配好、但还没推送跑过**；也**没有人**在那些平台跑过真实 DSH 会话。
-- **全量自测配在 ubuntu + windows，但 CI 还没跑过。** macOS 只进了语法 job 和 `verify:install` job —— 如实写，不是"全平台通过"。
+- **只在 Windows 桌面版 DSH 真机验证过。** 本文所有结论都来自 Windows 11 上的真实 DSH 桌面安装。macOS / Linux 的**语法检查、全量套件与 `verify:install` 已在 CI 里跑过**；也**没有人**在那些平台跑过真实 DSH 会话。
+- **全量自测在 CI 里覆盖 ubuntu + macOS + windows。** CI 通过只是自动化证据，不等于那些平台上的真实 DSH 会话已验证。
 - **翻译用的是免费公开接口**（优先 MyMemory，失败退 Google）。它们会限流、会不打招呼地改；一次批量翻译可能少于请求条数。除这两家之外不发任何数据，而且只在你按下「翻译」时才发。
 - **你让它改，它才改技能文件。** 一键修会重写你点的那份技能的 frontmatter（必先写 `.bak-<时间戳>` 备份），且**不编内容**：只补 entry 名、用该技能自己的正文补缺失/过短的描述、给会破坏 YAML 的冒号加引号。修不了时会明确说原因，不再静默。
 - **它不是沙箱。** 它读 DSH 自己解析的六个技能根（`project-dsh` / `project-agents` / `custom` / `user-dsh` / `user-agents` / `bundled`），只写 `~/.dsh/skills` 与 `~/.agents/skills`；别的 harness 目录一概不碰。
