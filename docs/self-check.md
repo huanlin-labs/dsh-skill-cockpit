@@ -27,10 +27,10 @@
       `SKILL_COCKPIT_HOME` 覆盖 `gloss.json` / `local.json`（`lib/state.js`）；`DSH_HOME` / `DSH_AGENTS_HOME` 覆盖技能根（`lib/roots.js`）；`doctor --home` 把两者一起重定向。
 
 - [x] **README 显眼处写了"硬拦 vs 建议"和"未验证清单"**
-      对应物是「诚实边界 / Honest boundaries」段：只在 Windows 真机验过、macOS 的语法/install job 已配但没跑过、翻译依赖免费接口、一键修会改文件但有 `.bak`、不是沙箱、调用次数只是下界。
+      对应物是「诚实边界 / Honest boundaries」段：只在 Windows 真机验过、macOS/Linux 的 CI 已跑但没有真机 DSH 会话、翻译依赖免费接口、一键修会改文件但有 `.bak`、不是沙箱、调用次数只是下界。
 
 - [x] **每个平台一个版本一个 tag，CHANGELOG 一条一条**
-      证据：当前只有 DSH（Windows 桌面）一个受支持平台；`1.5.0` 已发 npm、tag `v1.5.0`、GitHub Release `v1.5.0`，`CHANGELOG` 顶部为 `## 1.5.0 — 2026-10-30`。macOS/Linux 仍只跑语法与 `verify:install`，不列为受支持平台。
+      证据：当前只有 DSH（Windows 桌面）一个受支持平台；`1.5.1` 已发 npm、tag `v1.5.1`、GitHub Release `v1.5.1`，`CHANGELOG` 顶部为 `## 1.5.1 — 2026-10-30`。macOS/Linux 在 CI 里跑语法、全量套件与 `verify:install`，仍不列为受支持平台。
 
 - [x] **真机跑过至少一次"应当被拒"的调用，并把拒绝原文贴进 docs**
       证据：`test/run-repair.mjs` 的"缺描述且正文空：拒绝而不是编"、"没有 frontmatter：拒绝"、"根外文件：拒绝"，本轮实测 15/15；拒绝原文形如 `拒绝：description 缺失且正文里找不到可用的一句；请手动填写`。
@@ -40,5 +40,5 @@
 
 ## 一句话结论
 
-**9 条里 8 条有证据；CI 首跑已跑，tag 那趟仍待验证。**
+**9 条里 9 条有证据。** CI run `41076632643` 的 27 个 job 全绿（ubuntu / macOS 15 / Windows × Node 20/22/24）；tag 后的 `registry-tag` 见 `docs/status-ledger.md`。
 没做到"真机跑过一次被拒 + 出包能装能跑"之前，任何地方都不写"支持某某平台"。

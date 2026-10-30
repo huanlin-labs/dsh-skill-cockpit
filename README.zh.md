@@ -1,8 +1,8 @@
 # dsh-skill-cockpit
 
-> **v1.5.1 · 源码待发布**（npm `latest` 暂为 `1.5.0`）｜ `npm test` 19/19 套件全绿 ｜ `npm run verify:install` 13/13（pack → 空目录安装 → 用装机副本启动 → /ping 读回版本）｜ MIT
+> **v1.5.1 · 已发布 npm [`dsh-skill-cockpit@1.5.1`](https://www.npmjs.com/package/dsh-skill-cockpit)** ｜ `npm test` 19/19 套件全绿 ｜ `npm run verify:install` 13/13（pack → 空目录安装 → 用装机副本启动 → /ping 读回版本）｜ MIT
 
-> **源码 vs npm**：本检出的源码是 `1.5.1`，npm 上当前是 `1.5.0`；1.5.1 的改动见 `CHANGELOG.md` 顶部。
+> **源码 vs npm**：`1.5.1` 已发布，源码与 npm 包一致；改动见 `CHANGELOG.md` 顶部。
 
 > **诚实边界。** 它**不是沙箱**：只管理 DSH 自己暴露的技能根，只写 `~/.dsh/skills` 与 `~/.agents/skills`；管不了别的进程、手工改动，也管不了绕过 DSH 的调用。CLI / doctor / `verify:install` 在本机 Windows 有自动化实测；源码里新加的宿主半守卫要重启 dsh 才生效，重启后已确认左侧入口与主区页面槽位 active，但**未做逐按钮的视觉复验**，视觉层仍按「未验证」看待。CI 已在 ubuntu / macOS / windows × Node 20/22/24 上跑全量套件与 `verify:install`。
 DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加一个「技能」入口，

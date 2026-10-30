@@ -32,7 +32,7 @@
 
 - `npm test` —— 19/19 套件（其中 doctor 套件 23 项，含 `--dry-run` 不落盘、`--report` 写出 JSON、`zstd` 能力检查）。
 - `npm run verify:install` —— 13 项断言：pack → 空目录安装 → 装机副本启动 → `/ping` → 装机副本 `doctor --version` → 空 home 先报需要修 → `--fix` → 复检全绿 → 再 `--fix` 仍全绿（幂等）→ 状态目录隔离。
-- CI（`.github/workflows/ci.yml`）：语法 3 平台 × Node 20/22/24；全量自测 ubuntu + macOS + windows × 20/22/24；`verify:install` 3 平台 × 20/22/24；推 tag 时核对 registry `latest`。
+- CI（`.github/workflows/ci.yml`）：语法 3 平台 × Node 20/22/24；全量自测 ubuntu + macOS 15 + windows × 20/22/24；`verify:install` 3 平台 × 20/22/24；推 tag 时核对 registry `latest`。run [`41076632643`](https://github.com/huanlin-labs/dsh-skill-cockpit/actions/runs/41076632643) 的 27 个 job 全绿（macOS 用 `macos-15`，避开 `macos-latest` 的镜像退役抖动）。
 
 ## 五、它看不见什么
 
