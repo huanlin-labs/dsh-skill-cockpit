@@ -1,6 +1,6 @@
 /**
  * cockpit-doctor 自测：版本、--home 隔离、--fix、退出码、JSON 形状。
- * 全部在 D:\临时 沙箱里跑，不碰真实家目录。
+ * 全部在系统临时目录里跑，不碰真实家目录。
  */
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -21,7 +21,7 @@ const check = (label, ok, detail) => {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}${ok ? '' : '  ← ' + JSON.stringify(detail)}`)
 }
 
-const base = 'D:/临时/skill-panel-doctor-test'
+const base = join(tmpdir(), 'skill-panel-doctor-test')
 // 8 · --version（必须在参数解析之前处理）
 const version = run(['--version'])
 check('--version 输出名称与版本', version.status === 0 && version.stdout.trim() === `${pkg.name} ${pkg.version}`, { code: version.status, out: version.stdout.trim() })

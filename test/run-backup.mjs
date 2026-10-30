@@ -2,7 +2,7 @@
  * 本地备份自测（0.6.39）：单技能 / 全部 / 拒绝越界 / 不覆盖同名 / 源不动。
  */
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
+import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DEFAULT_BACKUP_ROOT, backupAll, backupSkill } from '../lib/manage-backup.js'
 
@@ -22,7 +22,7 @@ check(
   DEFAULT_BACKUP_ROOT.startsWith(join(homedir(), '.dsh')) && !DEFAULT_BACKUP_ROOT.includes('回收站'),
   DEFAULT_BACKUP_ROOT,
 )
-const base = 'D:/临时/skill-panel-backup-test'
+const base = join(tmpdir(), 'skill-panel-backup-test')
 rmSync(base, { recursive: true, force: true })
 const rootA = join(base, 'rootA')
 const rootB = join(base, 'rootB')

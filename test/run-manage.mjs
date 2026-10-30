@@ -3,6 +3,7 @@
  * 全部跑在 D:\临时 的沙箱目录里，不碰真实技能根。
  */
 import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
   createSkill,
@@ -28,7 +29,7 @@ const refusal = (fn) => {
   }
 }
 
-const base = 'D:/临时/skill-panel-manage-test'
+const base = join(tmpdir(), 'skill-panel-manage-test')
 rmSync(base, { recursive: true, force: true })
 const root = join(base, 'skills')
 const trash = join(base, 'trash')

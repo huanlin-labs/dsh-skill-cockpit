@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createFromTemplate, TEMPLATES } from '../lib/manage-template.js'
 
@@ -13,7 +14,7 @@ const refusal = (fn) => {
   try { fn(); return '' } catch (e) { return String(e.message) }
 }
 
-const base = 'D:/临时/skill-panel-template-test'
+const base = join(tmpdir(), 'skill-panel-template-test')
 rmSync(base, { recursive: true, force: true })
 const root = join(base, 'skills')
 

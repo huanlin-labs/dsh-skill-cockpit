@@ -3,6 +3,7 @@
  * 全部在 D:\临时 沙箱里跑。
  */
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { planRepair, repairSkill } from '../lib/manage-repair.js'
 import { readSkill } from '../lib/manage-write.js'
@@ -18,7 +19,7 @@ const refusal = (fn) => {
   try { fn(); return '' } catch (e) { return String(e.message) }
 }
 
-const base = 'D:/临时/skill-panel-repair-test'
+const base = join(tmpdir(), 'skill-panel-repair-test')
 rmSync(base, { recursive: true, force: true })
 const root = join(base, 'skills')
 const make = (dir, text) => {

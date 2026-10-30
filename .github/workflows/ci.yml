@@ -29,12 +29,11 @@ jobs:
           done
 
   suites:
-    # 全量自测：ubuntu + windows。 macOS 不在这里跑全量（见 README「诚实边界」），
-    # 它在 syntax 与 verify-install 两个 job 里仍被覆盖——不假装通过，只如实写范围。
+    # 全量自测：三平台 × 三个 Node。macOS 也跑全量，不再只靠 syntax/verify-install 兜底。
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         node: ['20', '22', '24']
     runs-on: ${{ matrix.os }}
     steps:

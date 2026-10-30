@@ -3,6 +3,7 @@
  * 全部在 D:\临时 沙箱里跑；不碰真实技能根与真实回收站。
  */
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createSkill, deleteSkill } from '../lib/manage-write.js'
 import { listTrash, purgeTrash, restoreTrash } from '../lib/manage-trash.js'
@@ -18,7 +19,7 @@ const refusal = (fn) => {
   try { fn(); return '' } catch (e) { return String(e.message) }
 }
 
-const base = 'D:/临时/skill-panel-trash-test'
+const base = join(tmpdir(), 'skill-panel-trash-test')
 rmSync(base, { recursive: true, force: true })
 const root = join(base, 'skills')
 const trash = join(base, 'trash')
