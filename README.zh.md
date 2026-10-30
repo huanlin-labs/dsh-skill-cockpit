@@ -1,7 +1,10 @@
 # dsh-skill-cockpit
 
-> **v1.0.0 · 已发布 npm [`dsh-skill-cockpit@1.0.0`](https://www.npmjs.com/package/dsh-skill-cockpit)** ｜ `npm test` 12/12 套件全绿 ｜ MIT
+> **v1.5.0 · 已发布 npm [`dsh-skill-cockpit@1.5.0`](https://www.npmjs.com/package/dsh-skill-cockpit)** ｜ `npm test` 19/19 套件全绿 ｜ `npm run verify:install` 13/13（pack → 空目录安装 → 用装机副本启动 → /ping 读回版本）｜ MIT
 
+> **源码 vs npm**：`1.5.0` 已发布，源码与 npm 包一致。
+
+> **诚实边界。** 它**不是沙箱**：只管理 DSH 自己暴露的技能根，只写 `~/.dsh/skills` 与 `~/.agents/skills`；管不了别的进程、手工改动，也管不了绕过 DSH 的调用。CLI / doctor / `verify:install` 在本机 Windows 有自动化实测；源码里新加的宿主半守卫要重启 dsh 才生效，重启后已确认左侧入口与主区页面槽位 active，但**未做逐按钮的视觉复验**，视觉层仍按「未验证」看待。CI 只是配好，还没真跑过。
 DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加一个「技能」入口，
 点开是**主区一整页**，列出本机**全部**技能、**按技能开关**，并接「未安装技能索引」做第二跳。
 
@@ -12,15 +15,59 @@ DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加�
 - 因此本包**不声明任何 `@deepseek-ai/dsh*` peer** ⇒ 不受 DSH 兼容性豁免闸门影响（见工作区 `AGENTS.md` §四 铁律 1/3）
 - 纯 ESM JavaScript，无构建链：`lib/*.js` 直接可跑，自测用 `node` 即可复跑
 
-## 安装
+## 自查：`dsh-skill-cockpit-doctor`
 
 ```bash
-npm i dsh-skill-cockpit@1.0.0      # 或 pnpm add / yarn add
+npx dsh-skill-cockpit-doctor                     # 面板没出现？查：状态目录 / 技能根 / 装配 / 译文
+npx dsh-skill-cockpit-doctor --json              # 给机器读
+npx dsh-skill-cockpit-doctor --home <dir> --fix  # 路径全重定向到临时 home；只补能安全补的
+npx dsh-skill-cockpit-doctor --dry-run           # 只说 --fix 会做什么，不落盘
+npx dsh-skill-cockpit-doctor --report out.json   # 同一份 JSON 写到文件（只读，不改状态）
 ```
 
-装完在 profile 的 bundles 里加上 `dsh-skill-cockpit`（或 `cordis.patch.yml` 用 `insert:` 挂一行），重启 DSH 即可在左上导航看到「技能」。
-本机开发可直接 `link:D:/插件/dsh-skill-panel`。
+退出码：`0` 就绪 · `1` 有要修的 · `2` 环境问题。
 
+**平台矩阵**（谁验过、谁没验）：[`docs/platforms.md`](docs/platforms.md)。
+**交付前自检**（哪条打了勾、证据是什么、哪条还没做）：[`docs/self-check.md`](docs/self-check.md)。
+**出问题了**（检查项对照表 + 三个常见现象）：[`docs/troubleshooting.md`](docs/troubleshooting.md)。
+**哪些 backlog 已实现、哪些是真缺**（逐条给证据）：[`docs/status-ledger.md`](docs/status-ledger.md)。
+
+## 诚实边界（先看这段，再看下面）
+
+- **只在 Windows 桌面版 DSH 真机验证过。** 本文所有结论都来自 Windows 11 上的真实 DSH 桌面安装。macOS / Linux 的**语法检查**与 `verify:install` **已在 CI 里配好、但还没推送跑过**；也**没有人**在那些平台跑过真实 DSH 会话。
+- **全量自测配在 ubuntu + windows，但 CI 还没跑过。** macOS 只进了语法 job 和 `verify:install` job —— 如实写，不是"全平台通过"。
+- **翻译用的是免费公开接口**（优先 MyMemory，失败退 Google）。它们会限流、会不打招呼地改；一次批量翻译可能少于请求条数。除这两家之外不发任何数据，而且只在你按下「翻译」时才发。
+- **你让它改，它才改技能文件。** 一键修会重写你点的那份技能的 frontmatter（必先写 `.bak-<时间戳>` 备份），且**不编内容**：只补 entry 名、用该技能自己的正文补缺失/过短的描述、给会破坏 YAML 的冒号加引号。修不了时会明确说原因，不再静默。
+- **它不是沙箱。** 它读 DSH 自己解析的六个技能根（`project-dsh` / `project-agents` / `custom` / `user-dsh` / `user-agents` / `bundled`），只写 `~/.dsh/skills` 与 `~/.agents/skills`；别的 harness 目录一概不碰。
+- **调用次数只是下界。** 数字来自解析会话日志里的 `tool-call`（`name: "skill"`）；更早的日志形状或从别的入口调用的技能会读成 0。
+
+## 安装
+
+三步，每步都有可对照的输出。
+
+**① 装包**
+
+```bash
+npm i dsh-skill-cockpit      # 或 pnpm add / yarn add
+```
+
+期望：`node_modules/dsh-skill-cockpit/package.json` 里的 `version` 与你装的版本一致。
+
+**② 挂进 profile（这步归 DSH，插件不替你改配置）**
+
+在 `~/.dsh/profiles/<你的 profile>/package.json` 的 `dependencies` 里加 `"dsh-skill-cockpit": "^1.5.0"`（或你装的版本），
+或在 `cordis.patch.yml` 用 `insert:` 挂一行。本机开发可直接写 `"dsh-skill-cockpit": "link:D:/插件/dsh-skill-panel"`。
+
+期望：`node -e "console.log(require('./package.json').dependencies)"` 的输出里能看到这一条。
+
+**③ 重启 DSH，然后自查**
+
+```bash
+npx dsh-skill-cockpit-doctor
+```
+
+期望：最后一行是「一切就绪」，左侧导航「插件」与「自动化任务」之间出现「技能」。
+没出现就看 `--json` 里第一个不是 `ok` 的项：装配那项回第 ② 步；状态目录 / 技能根那项跑 `--fix`。
 **同时给 dsh 一个工具**：`skill_panel`（20 个动作，覆盖面板全部能力）——
 基础 11 个：`list` / `read` / `create` / `update` / `delete` / `toggle` / `repair` / `backup` / `trash_list` / `trash_restore` / `trash_purge`；
 二期 9 个：后备库 `vault_list` / `vault_put` / `vault_install`、DSH 预设 `preset_list` / `preset_mount` / `preset_unmount`、批量四态 `mode_set`、`usage`、`checkup`。
@@ -150,12 +197,14 @@ npm install dsh-skill-cockpit
       # 可选配置（全部有默认值）：
       # config:
       #   dshHome: 'C:\\Users\\<你>\\.dsh'          # 默认 $DSH_HOME 或 ~/.dsh
+      #   trashRoot / backupRoot 都不得放在技能根内（否则删除 / 备份会把自己搬进自己）
+#   backupRoot: 'C:\\Users\\you\\Backups\\skill-panel'   # 默认 <dshHome>/skill-panel/backups
       #   agentsHome: 'C:\\Users\\<你>\\.agents'     # 默认 $DSH_AGENTS_HOME 或 ~/.agents
       #   customSkillDirs: []                       # 额外的技能根
       #   bundledSkillDir: ''                       # 默认 $DSH_BUNDLED_SKILL_DIR
       #   includeDefaultRoots: true
       #   writableSources: ['user-dsh']             # 默认 ['user-dsh','user-agents']
-      #   undeclaredIndexPath: 'D:\\管家\\技能索引与最小路由\\技能改造\\未安装技能索引-正文.md'
+      #   undeclaredIndexPath: 'C:\\Users\\you\\Documents\\skills-index.md'
 ```
 
 改装配 = **要重启 dsh**（进程红线：重启只由户主执行）。技能开关**不需要**重启。
@@ -246,7 +295,7 @@ node test/run-all.mjs [报告目录]
 |---|---|
 | `run-data-layer.mjs` | 六类根 / `dropped:*` 全可达（合成 fixture）/ `root-missing` / **独立目录遍历比对（不多报、不漏报）** / 字节数与磁盘一致 |
 | `run-toggle.mjs` | 在**真实** `~/.dsh/skills` 上对 1 个新建探针做 改名→停用→改回 闭环：sha256 一致、根项数不变、面板仍显示"已停用"、清理后零残留；另含目录/非入口/根外/项目级四类拒绝路径 |
-| `run-routes.mjs` | 假 ctx 跑真 `apply()`：**7 条路由**注册、200/400/403/405、ping、`/usage` 落盘到**配置的**路径（自测绝不写真实 `~/.dsh`）且第二次增量跳过、`/checks` 真实命中 |
+| `run-routes.mjs` | 假 ctx 跑真 `apply()`：**33 条路由**注册、200/400/403/405、ping、`/usage` 落盘到**配置的**路径（自测绝不写真实 `~/.dsh`）且第二次增量跳过、`/checks` 真实命中 |
 | `run-client.mjs` | 假 `__ModuleLoader__` + React 桩：bundle 求值、**挂载对（`sidebar.panellist` 行 id/order/label + `main` keyed 页 key 一致）**、`order=5` 夹位断言、**座位未声明时不注册也不抛错**、健康/坏 frontmatter/第二跳/错误态/**无 `useSessions` 降级**、**三个视图（列表/用量/问题）**、用量空态那句、非文件型的「禁不了」标注、主题令牌无死令牌 |
 | `run-usage.mjs` | 真 zstd **多帧**文件（每帧独立压缩再拼接）：多帧解码 / 单帧 / 纯文本回退 / 垃圾字节 / `seq` 去重 / 深层嵌套事件筛选 / 增量跳过 / 文件变大不双计 / 落盘结构 / **隐私（落盘不含对话原文）** |
 | `run-checks.mjs` | 四类诊断各自正反例：`shadowed` / `short-description`（空、19 字、正好 20 字）/ `dir-name-mismatch`（仅 `dir-bundle`）/ `empty-body`（阈值边界）/ 汇总 / 阈值覆盖 / 畸形输入不抛 / 纯函数不改入参 |
@@ -254,9 +303,9 @@ node test/run-all.mjs [报告目录]
 ## 边界（有意不做）
 
 - 项目级根**不写**（安全边界：工作区 = 权限域）
-- 不安装、不下载、不删除任何技能；停用只改名，文件内容一字节不动
+- 不安装、不下载技能；**删除 = 先整份复制进插件自己的回收站、二次确认**（`purge` 才永久删）；停用只改入口文件名，正文一字节不动
 - 不做"最近被加载"（要动宿主埋点，成本大于收益）
-- 不保留任何"面板侧开关状态"（技能开关 = 文件名，见上）
+- **技能开关状态只存在文件名里**（`SKILL.md` ↔ `.md.disabled`）；面板自己只存偏好（自动加载档位、必用/不用、译文缓存），都在 `~/.dsh/skill-cockpit/`
 
 ## 未实查项（如实标注）
 

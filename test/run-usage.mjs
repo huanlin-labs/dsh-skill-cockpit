@@ -20,7 +20,22 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync, utimesSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { zstdCompressSync } from 'node:zlib';
+import zlib from 'node:zlib';
+import { zstdAvailable } from '../lib/usage.js';
+if (typeof zlib.zstdCompressSync !== 'function') {
+  console.log(`SKIP  run-usage：当前 Node ${process.version} 没有 zstd API（需要 Node 24+），本套件跳过`);
+  process.exit(0);
+}
+if (!zstdAvailable()) {
+  console.log('FAIL  zstdAvailable() 应为 true（本套件本来就要求有 zstd）');
+  process.exit(1);
+}
+console.log('PASS  zstdAvailable() 为 true');
+if (typeof zlib.zstdCompressSync !== 'function') {
+  console.log(`SKIP  run-usage：当前 Node ${process.version} 没有 zstd API（需要 Node 24+），本套件跳过`);
+  process.exit(0);
+}
+const zstdCompressSync = zlib.zstdCompressSync;
 import {
   collectInvocations,
   findSessionFiles,

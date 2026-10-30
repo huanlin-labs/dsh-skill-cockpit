@@ -76,6 +76,7 @@ else record('FAIL', 'package.json.version 合法', `不是 semver：${version}`)
 const changelog = readFileSync(join(ROOT, 'CHANGELOG.md'), 'utf8');
 const top = /^##\s+(\S+)/m.exec(changelog);
 if (top && top[1] === version) record('PASS', 'CHANGELOG 顶部 = 当前版本', top[1]);
+else if (top && /^未发布/.test(top[1])) record('FAIL', 'CHANGELOG 顶部 = 当前版本', `顶部是 ${top[1]}（攒着未发版改动）——先 bump package.json 版本，再把该标题改成新版本号；不要删这一节`);
 else record('FAIL', 'CHANGELOG 顶部 = 当前版本', `顶部是 ${top ? top[1] : '(没找到 ## 条目)'}，版本是 ${version}`);
 
 // 3 · npm latest

@@ -16,7 +16,10 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync, existsSync, readFileSync, lstatSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { zstdCompressSync } from 'node:zlib';
+import zlib from 'node:zlib';
+// Node 20/22 早期没有 zstd API（Node 24 才有稳定导出）：没有就写纯文本日志，
+// usage 读取器对“没有 zstd magic”的文件按纯文本读，路由测试照样能跑。
+const zstdCompressSync = typeof zlib.zstdCompressSync === 'function' ? zlib.zstdCompressSync : (buf) => buf;
 import { apply, name, inject } from '../lib/index.js';
 import { ACTIONS } from '../lib/tools.js';
 
@@ -86,6 +89,15 @@ mkdirSync(probeSkill, { recursive: true });
 writeFileSync(
   join(probeSkill, 'SKILL.md'),
   '---\nname: route-probe\ndescription: 路由自测探针\n---\n正文\n',
+  'utf8',
+);
+
+// Second fixture: the tool half's action=backup must land in the same configured home.
+const toolSkill = join(probeHome, 'skills', 'tool-probe');
+mkdirSync(toolSkill, { recursive: true });
+writeFileSync(
+  join(toolSkill, 'SKILL.md'),
+  '---\nname: tool-probe\ndescription: 工具备份自测探针\n---\n正文\n',
   'utf8',
 );
 
@@ -441,6 +453,13 @@ try {
   );
   check('预设页提示要重启 dsh 才生效', String(list0.json?.note ?? '').includes('重启'));
 
+  const usageInfo = await hit(`${BASE}/usage`);
+  check(
+    'GET /usage 报告 zstd 能力（缺 API 时前端能说清为什么是 0）',
+    usageInfo.status === 200 && typeof usageInfo.json?.zstd === 'boolean',
+    `${usageInfo.status} zstd=${usageInfo.json?.zstd}`,
+  );
+
   const mount = await hit(`${BASE}/presets/mount`, {
     method: 'POST',
     body: { presetId, skillName: 'route-probe' },
@@ -513,6 +532,78 @@ try {
     badSkill.status === 400 && badSkill.json?.ok === false,
     `${badSkill.status} ${badSkill.json?.error}`,
   );
+  // ---- 0.4.x · 备份落点必须跟随 dshHome（回归：曾经绕过配置写 ~/.dsh）----
+  const backup = await hit(`${BASE}/skill/backup`, {
+    method: 'POST',
+    body: { filePath: join(probeSkill, 'SKILL.md') },
+  });
+  check(
+    '备份落点跟随 dshHome（不写 ~/.dsh）',
+    backup.status === 200 && backup.json?.ok === true && String(backup.json?.dest ?? '').startsWith(join(probeHome, 'skill-panel', 'backups')),
+    `${backup.status} ${backup.json?.dest ?? backup.json?.error}`,
+  );
+  check('备份确实写出了 SKILL.md', Boolean(backup.json?.dest) && existsSync(join(backup.json.dest, 'SKILL.md')));
+
+  // A second app instance: explicit backupRoot must win over <dshHome>/skill-panel/backups.
+  const customBackupRoot = join(probeRoot, 'custom-backups');
+  const registered2 = [];
+  const ctx2 = {
+    effect(callback) { callback(); return () => {}; },
+    tools: { register() { return () => {}; } },
+    get(service) { return service === 'webServer' ? { register(d) { registered2.push(d); return () => {}; } } : undefined; },
+    on() { return () => {}; },
+  };
+  await apply(ctx2, { dshHome: probeHome, backupRoot: customBackupRoot, usageStorePath: join(probeRoot, 'usage2.json') });
+  const backupRoute2 = registered2.find((r) => r.path === `${BASE}/skill/backup`);
+  const req2 = makeReq('POST', `${BASE}/skill/backup`, { filePath: join(probeSkill, 'SKILL.md') });
+  const res2 = makeRes();
+  const pending2 = backupRoute2.handler(req2, res2);
+  req2.emitBody();
+  await pending2;
+  check('自定义 backupRoot 覆盖默认落点', String(res2.holder.json?.dest ?? '').startsWith(customBackupRoot), String(res2.holder.json?.dest ?? res2.holder.json?.error));
+
+  // A backup root inside a skill directory could recurse into itself: must be refused.
+  const badBackupRoot = join(probeHome, 'skills', 'route-probe', 'backups');
+  const registered3 = [];
+  const ctx3 = {
+    effect(callback) { callback(); return () => {}; },
+    tools: { register() { return () => {}; } },
+    get(service) { return service === 'webServer' ? { register(d) { registered3.push(d); return () => {}; } } : undefined; },
+    on() { return () => {}; },
+  };
+  await apply(ctx3, { dshHome: probeHome, backupRoot: badBackupRoot, usageStorePath: join(probeRoot, 'usage3.json') });
+  const backupRoute3 = registered3.find((r) => r.path === `${BASE}/skill/backup`);
+  const req3 = makeReq('POST', `${BASE}/skill/backup`, { filePath: join(probeSkill, 'SKILL.md') });
+  const res3 = makeRes();
+  const pending3 = backupRoute3.handler(req3, res3);
+  req3.emitBody();
+  await pending3;
+  check('备份根在技能根内必须拒绝', res3.holder.status === 400 && String(res3.holder.json?.error ?? '').includes('备份根不能放在技能根内'), String(res3.holder.json?.error ?? res3.holder.status));
+
+  // Same guard for the trash root: a delete must never move a skill into itself.
+  const badTrashRoot = join(probeHome, 'skills', 'route-probe', 'trash');
+  const registered4 = [];
+  const ctx4 = {
+    effect(callback) { callback(); return () => {}; },
+    tools: { register() { return () => {}; } },
+    get(service) { return service === 'webServer' ? { register(d) { registered4.push(d); return () => {}; } } : undefined; },
+    on() { return () => {}; },
+  };
+  await apply(ctx4, { dshHome: probeHome, trashRoot: badTrashRoot, usageStorePath: join(probeRoot, 'usage4.json') });
+  const deleteRoute4 = registered4.find((r) => r.path === `${BASE}/skill/delete`);
+  const req4 = makeReq('POST', `${BASE}/skill/delete`, { filePath: join(probeSkill, 'SKILL.md') });
+  const res4 = makeRes();
+  const pending4 = deleteRoute4.handler(req4, res4);
+  req4.emitBody();
+  await pending4;
+  check('回收站目录在技能根内必须拒绝', res4.holder.status === 400 && String(res4.holder.json?.error ?? '').includes('回收站不能放在技能根内'), String(res4.holder.json?.error ?? res4.holder.status));
+  const toolBackup = await toolsRegistered[0].execute({ action: 'backup', name: 'tool-probe', cwd: probeHome });
+  check(
+    '工具 action=backup 也跟随 dshHome',
+    toolBackup?.ok === true && String(toolBackup.dest ?? '').startsWith(join(probeHome, 'skill-panel', 'backups')),
+    String(toolBackup?.dest ?? toolBackup?.error),
+  );
+
 } finally {
   rmSync(probeRoot, { recursive: true, force: true });
 }

@@ -10,7 +10,7 @@ import {
   importSkill,
   readSkill,
   updateSkill,
-} from 'file:///D:/%E6%8F%92%E4%BB%B6/dsh-skill-panel/lib/manage-write.js'
+} from '../lib/manage-write.js'
 
 let pass = 0
 let total = 0

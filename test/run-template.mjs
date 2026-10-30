@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { createFromTemplate, TEMPLATES } from 'file:///D:/%E6%8F%92%E4%BB%B6/dsh-skill-panel/lib/manage-template.js'
+import { createFromTemplate, TEMPLATES } from '../lib/manage-template.js'
 
 let pass = 0
 let total = 0

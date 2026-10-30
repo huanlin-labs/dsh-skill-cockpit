@@ -4,8 +4,8 @@
  */
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { planRepair, repairSkill } from 'file:///D:/%E6%8F%92%E4%BB%B6/dsh-skill-panel/lib/manage-repair.js'
-import { readSkill } from 'file:///D:/%E6%8F%92%E4%BB%B6/dsh-skill-panel/lib/manage-write.js'
+import { planRepair, repairSkill } from '../lib/manage-repair.js'
+import { readSkill } from '../lib/manage-write.js'
 
 let pass = 0
 let total = 0
@@ -35,7 +35,7 @@ check('缺 name：补成目录名', r1.changed === true && readFileSync(f1, 'utf
 check('缺 name：留了备份', typeof r1.backup === 'string' && existsSync(r1.backup), r1.backup)
 check('缺 name：备份是原内容', !readFileSync(r1.backup, 'utf8').includes('name: no-name'), 'backup')
 
-const f2 = make('right-name', '---\nname: wrong-name\ndescription: 名字和目录不一致时应该改成目录名\n---\n\n正文\n')
+const f2 = make('right-name', '---\nname: wrong-name\ndescription: 名字和目录不一致时应该改成目录名，这条描述足够长不需要修\n---\n\n正文\n')
 const r2 = repairSkill({ filePath: f2, root })
 check('name 不匹配：改成目录名', r2.changed === true && /name: right-name/.test(readFileSync(f2, 'utf8')), r2.fixes)
 
@@ -46,7 +46,18 @@ check('YAML 冒号：整段加引号', r3.changed === true && /description: ".*A
 
 const f4 = make('short-desc', '---\nname: short-desc\ndescription: 短\n---\n\n# 用正文第一段当简介\n\n更多内容\n')
 const r4 = repairSkill({ filePath: f4, root })
-check('短描述：改用正文第一段', readFileSync(f4, 'utf8').includes('description: "用正文第一段当简介"'), r4.fixes)
+const t4 = readFileSync(f4, 'utf8')
+check('短描述：保留原词并补上正文第一段', t4.includes('短——用正文第一段当简介'), t4.split('\n')[2])
+
+// 真实场景：13 字的描述，体检报「少于阈值 20」，一键修必须真能修（原来阈值 8 → changed=false，按钮像死的）
+const f4b = make('short-desc-13', '---\nname: short-desc-13\ndescription: 女娲 · Skill造人术\n---\n\n# 女娲\n\n把一本书蒸馏成一组可执行技能，含世界观、人物与章节骨架。\n')
+const r4b = repairSkill({ filePath: f4b, root })
+const d4b = /^description\s*:\s*"?(.*?)"?$/m.exec(readFileSync(f4b, 'utf8'))[1]
+check('13 字描述：一键修真生效且 ≥20 字', r4b.changed === true && d4b.length >= 20, { r4b, d4b })
+
+const f4c = make('short-desc-nobody', '---\nname: short-desc-nobody\ndescription: 女娲 · Skill造人术\n---\n\n')
+const r4c = repairSkill({ filePath: f4c, root })
+check('短描述但正文无句子：不静默，给出原因', r4c.changed === false && String(r4c.reason).includes('13'), r4c)
 
 const f5 = make('no-desc', '---\nname: no-desc\n---\n\n这是正文里的一句话，长度足够当描述。\n')
 const r5 = repairSkill({ filePath: f5, root })

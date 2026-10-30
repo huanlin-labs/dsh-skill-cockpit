@@ -2,13 +2,23 @@
 
 [![npm](https://img.shields.io/npm/v/dsh-skill-cockpit?color=cb3837&label=npm)](https://www.npmjs.com/package/dsh-skill-cockpit)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![tests](https://img.shields.io/badge/tests-351%20assertions%20%C2%B7%207%2F7%20suites-brightgreen)](test)
+[![tests](https://img.shields.io/badge/tests-19%2F19%20suites-brightgreen)](test)
 
-> **v0.6.10 — runs end-to-end on a real desktop install.**
-> 7/7 self-test suites · **351 assertions**, all green.
-> Published as [`dsh-skill-cockpit`](https://www.npmjs.com/package/dsh-skill-cockpit); npm `latest` = **0.6.10**.
+> **v1.5.0 — runs end-to-end on a real desktop install.**
+> 19/19 self-test suites, all green · `npm run verify:install` packs the tarball, installs it into an
+> empty directory and boots **that copy** (13/13 checks).
+> Published as [`dsh-skill-cockpit`](https://www.npmjs.com/package/dsh-skill-cockpit); npm `latest` = **1.5.0**.
 > (The bare name `dsh-skill-panel` belongs to a different author.)
 
+> **Source vs npm:** the npm `1.4.1` tarball predates the unreleased items in `CHANGELOG.md`.
+> Until the next release, treat those items as source-only.
+
+> **Honest boundary.** This is **not a sandbox**. It manages only the skill roots DSH itself
+> exposes and writes only inside `~/.dsh/skills` and `~/.agents/skills`; it cannot stop other
+> processes, manual edits, or skills invoked outside DSH. CLI / doctor / `verify:install` are
+> covered by automated tests on this Windows machine. Host-half guards added in the unreleased
+> source tree need a DSH restart, and the sidebar entry and main-page slot are confirmed active after a real restart, but a button-by-button visual re-check has **not** been done — treat the visual layer as 未验证 (not yet verified)**. CI is configured
+> but has not run yet.
 A **skill cockpit for [DSH](https://github.com/deepseek-ai)** (DeepSeek Harness): one page in the
 app-level navigation that shows every skill the machine actually exposes, says **why** a skill is
 missing, and lets you toggle a single skill without editing anything but its entry-file name.
@@ -20,6 +30,44 @@ npm i dsh-skill-cockpit          # or install it as a DSH bundle via the plugin 
 Restart DSH after installing; the page sits in the left nav between **Plugins** and **Schedule**.
 
 [中文说明](README.zh.md)
+
+## Self-check: `dsh-skill-cockpit-doctor`
+
+```bash
+npx dsh-skill-cockpit-doctor            # why is the page missing? state dir / skill roots / assembly / gloss
+npx dsh-skill-cockpit-doctor --json     # machine-readable
+npx dsh-skill-cockpit-doctor --home <dir> --fix   # redirected home for tests/CI; fixes only safe things
+npx dsh-skill-cockpit-doctor --dry-run            # say what --fix would do, write nothing
+npx dsh-skill-cockpit-doctor --report out.json    # write the same JSON to a file (read-only)
+```
+
+Exit codes: `0` ready · `1` something to fix · `2` environment problem.
+
+**Platform matrix** (who is verified and who is not): [`docs/platforms.md`](docs/platforms.md).
+**Pre-release self-check** (what is ticked, with evidence, and what is still open): [`docs/self-check.md`](docs/self-check.md).
+**Something is broken** (check-by-check table + three common symptoms): [`docs/troubleshooting.md`](docs/troubleshooting.md).
+**What is actually done vs. still missing** (each row with evidence): [`docs/status-ledger.md`](docs/status-ledger.md).
+
+## Honest boundaries (read this before trusting anything below)
+
+- **Verified on Windows desktop DSH only.** Every claim here comes from a real DSH desktop install on
+  Windows 11. CI jobs for macOS/Linux **syntax and `verify:install` are configured but have not run yet**;
+  nobody has run a real DSH session on them.
+- **Full test suites are configured for ubuntu + windows, but CI has not run yet.** macOS is only in the
+  syntax and `verify:install` jobs. Nothing here says "all platforms pass".
+- **Translation uses free public endpoints** (MyMemory first, Google as fallback). They rate-limit and
+  change without notice; a bulk translation may return fewer items than asked. Nothing is sent anywhere
+  except those two services, and only when you press 翻译.
+- **It edits skill files when you ask it to.** 一键修 rewrites the frontmatter of the skill you clicked
+  (always with a `.bak-<timestamp>` backup first) and never invents content: it only fixes the entry
+  name, fills a missing description from the skill's own body text, or quotes a YAML-breaking colon.
+  If it cannot fix something it now says so instead of staying silent.
+- **It is not a sandbox.** It reads the six skill roots DSH itself resolves (`project-dsh`,
+  `project-agents`, `custom`, `user-dsh`, `user-agents`, `bundled`) and writes only inside
+  `~/.dsh/skills` and `~/.agents/skills`. Other harnesses' directories are never touched.
+- **Usage counts are a lower bound.** They come from parsing session logs for `tool-call` blocks
+  named `skill`; skills invoked before that log shape existed, or from a different entry point,
+  read as 0.
 
 ## What it does
 
@@ -221,27 +269,36 @@ Rendered from the shipped CSS in the dark theme (900 px wide):
 ![List: checkup summary bar and the four-state pill on every row](docs/list.png)
 ## Install
 
+Three steps; each one says what you should see.
+
+**1 · Install the package**
+
 ```bash
-npm install dsh-skill-cockpit
+npm i dsh-skill-cockpit      # or pnpm add / yarn add
 ```
 
-The published version is **0.2.3** today; 0.6.7 is pending release. To run the current source
-instead, clone and link the working tree:
+Expect: `node_modules/dsh-skill-cockpit/package.json` reports the version you installed.
 
-```jsonc
-// ~/.dsh/profiles/<profile>/package.json
-{
-  "dependencies": { "dsh-skill-cockpit": "link:/path/to/dsh-skill-cockpit" },
-  "dsh": { "profile": { "bundles": ["…", "dsh-skill-cockpit"] } }
-}
+**2 · Mount it in your profile (DSH owns this; the plugin never edits your config)**
+
+Add `"dsh-skill-cockpit": "^1.5.0"` (or your installed version) to `dependencies` in
+`~/.dsh/profiles/<your profile>/package.json`, or one `insert:` line in `cordis.patch.yml`.
+Local development: `"dsh-skill-cockpit": "link:D:/插件/dsh-skill-panel"`.
+
+Expect: the output of `node -e "console.log(require('./package.json').dependencies)"` lists it.
+
+**3 · Restart DSH, then self-check**
+
+```bash
+npx dsh-skill-cockpit-doctor
 ```
 
-Then restart DSH. The entry appears in the left navigation as **Skills**.
-
+Expect: the last line says everything is ready, and a **Skills** entry appears between Plugins and Automation in the left nav.
+If not, run `--json` and look at the first non-`ok` check: assembly → back to step 2; state dir / skill root → `--fix`.
 ## Development
 
 ```bash
-node test/run-all.mjs      # 6 suites: data layer · toggle loop · host routes · client · usage · checks
+node test/run-all.mjs      # 19 suites: data layer · toggle loop · host routes · client · usage · checks · …
 ```
 
 Pure ESM JavaScript, no build step — `lib/*.js` runs as-is.
@@ -269,17 +326,17 @@ Pure ESM JavaScript, no build step — `lib/*.js` runs as-is.
 
 | 能力 | 说明 |
 |---|---|
-| 回收站 | 删除先整目录移入 `D:\回收站\技能面板删除`；面板可预览 / 还原 / 彻底删除 |
+| 回收站 | 删除先整目录移入 `<DSH home>/skill-panel/trash`；面板可预览 / 还原 / 彻底删除 |
 | 一键修 | 补 `name`、纠正 name 与目录不一致、给带冒号的描述加引号、用正文首行补短描述；改前 `.bak`，修不了就拒绝 |
 | 批量 | 多选后批量开 / 关 / 删（二次确认）/ 加入分组 |
 | 排序筛选 | 名称 / 来源 / 状态 / 用量（用量懒加载） |
 | 偏好 | 用量窗口、默认排序、危险操作二次确认，写入 localStorage |
-| 备份 | 单技能 / 全部复制到 `D:\回收站\技能面板备份\<时间戳>`，不覆盖同名 |
+| 备份 | 单技能 / 全部复制到 `<DSH home>/skill-panel/backups/<timestamp>`，不覆盖同名 |
 | 模板 | 空白 / 带脚本 / 带引用 |
 | 遮蔽徽章 | 跨根重名时在行内标出「被遮蔽 · 遮蔽者」 |
 | 跳转 | 搜索框旁下拉直接定位技能 |
 
-截图见 `D:\工作区\插件制作\技能面板\产出\0.6.39\`。自测 12/12 套件（回收站 14、一键修 13、备份 11、模板 10、客户端 89、路由 69）。
+截图见对应版本的 GitHub Release 说明。自测 19/19 套件全绿；各套件自己的断言数见 `test/out/` 的报告。
 
 ## 0.6.40 · 下拉全部自绘
 
@@ -298,8 +355,8 @@ Pure ESM JavaScript, no build step — `lib/*.js` runs as-is.
 ## Generic build and local build
 
 The published package is the **generic build (A)**. It assumes nothing about the machine:
-the trash lives in `<DSH home>/skill-panel/trash`, the reserve vault in
-`<DSH home>/skill-vault`, and writable skills are the DSH-managed roots only.
+the trash lives in `<DSH home>/skill-panel/trash`, the reserve list in
+`<DSH home>/skill-panel/后备库.md`, and writable skills are the DSH-managed roots only.
 
 A local build (B) is the same code plus an optional machine-local file:
 
@@ -307,6 +364,13 @@ A local build (B) is the same code plus an optional machine-local file:
 <DSH home>/skill-cockpit/local.json
 ```
 
-Supported keys (all optional): `trashRoot`, `reserveDir`, `writableSources`,
-`customSkillDirs`, `agentsHome`. The file is never published and never required —
-without it the generic defaults apply.
+Common keys (all optional): `dshHome`, `trashRoot`, `backupRoot`, `reserveListPath`,
+`writableSources`, `customSkillDirs`, `agentsHome`.
+
+Advanced keys read from the same file (defaults are the tested path): `bundledSkillDir`,
+`includeDefaultRoots`, `undeclaredIndexPath`, `usageStorePath`, `usageMaxFiles`,
+`maxBodyBytes`, `minDescriptionLength`, `emptyBodyBytes`.
+
+`trashRoot` and `backupRoot` are refused if they point inside a skill root (moving or backing up a skill into its own source could recurse).
+
+The file is never published and never required — without it the generic defaults apply.

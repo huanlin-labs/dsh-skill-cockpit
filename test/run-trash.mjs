@@ -4,8 +4,8 @@
  */
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { createSkill, deleteSkill } from 'file:///D:/%E6%8F%92%E4%BB%B6/dsh-skill-panel/lib/manage-write.js'
-import { listTrash, purgeTrash, restoreTrash } from 'file:///D:/%E6%8F%92%E4%BB%B6/dsh-skill-panel/lib/manage-trash.js'
+import { createSkill, deleteSkill } from '../lib/manage-write.js'
+import { listTrash, purgeTrash, restoreTrash } from '../lib/manage-trash.js'
 
 let pass = 0
 let total = 0

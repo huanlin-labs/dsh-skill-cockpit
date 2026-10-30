@@ -83,8 +83,9 @@ const baselineDisabled = countDisabled(userRoot);
 note('baseline', `技能根项数 ${baselineItems} · 全根 .disabled 残留 ${baselineDisabled}`);
 
 if (!existsSync(userRoot)) {
-  console.error('用户技能根不存在，本测试无法进行。');
-  process.exit(1);
+  // 干净环境（CI 的 ~/.dsh 是空的）：技能根不存在时建一个空目录，探针才有地方放。
+  mkdirSync(userRoot, { recursive: true });
+  note('setup', `技能根不存在，已创建空目录 ${userRoot}`);
 }
 if (existsSync(probeDir) || existsSync(flatPath)) {
   console.error('探针路径已存在，拒绝继续（避免覆盖）。');

@@ -2,8 +2,9 @@
  * 本地备份自测（0.6.39）：单技能 / 全部 / 拒绝越界 / 不覆盖同名 / 源不动。
  */
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
 import { join } from 'node:path'
-import { backupAll, backupSkill } from 'file:///D:/%E6%8F%92%E4%BB%B6/dsh-skill-panel/lib/manage-backup.js'
+import { DEFAULT_BACKUP_ROOT, backupAll, backupSkill } from '../lib/manage-backup.js'
 
 let pass = 0
 let total = 0
@@ -16,6 +17,11 @@ const refusal = (fn) => {
   try { fn(); return '' } catch (e) { return String(e.message) }
 }
 
+check(
+  '默认备份根在 DSH home 内，且不写死本机盘符',
+  DEFAULT_BACKUP_ROOT.startsWith(join(homedir(), '.dsh')) && !DEFAULT_BACKUP_ROOT.includes('回收站'),
+  DEFAULT_BACKUP_ROOT,
+)
 const base = 'D:/临时/skill-panel-backup-test'
 rmSync(base, { recursive: true, force: true })
 const rootA = join(base, 'rootA')

@@ -1,3 +1,50 @@
+## 1.5.0 — 2026-10-30
+
+### 自证：verify:install + CI 三平台 + 诚实边界
+
+- 新增 `npm run verify:install`：**npm pack → 装进空临时目录 → 用装机副本启动宿主半 → /ping 读回版本 → 状态目录隔离**，8 项断言。抓的是「源码能跑、发出去的包不能跑」这类只有真装才暴露的问题（本轮第一次跑就抓到：`lib/state.js` 不在旧包的安装结果里 → 立刻确认 tarball 必须自带它）。
+- 状态路径可用 `SKILL_COCKPIT_HOME` 覆盖（`lib/state.js`），`gloss.json` / `local.json` 都走它；测试与 CI 不再污染真实 `~/.dsh`。
+- CI 从「ubuntu × Node 20.11 单格」改为：语法三平台 × Node 20/22/24；全量自测 ubuntu + windows × 20/22/24；`verify:install` 三平台 × 20/22/24；**推 tag 时单独核对 registry `latest` = package.json 版本**。macOS 不跑全量套件，README 如实写明。
+- README / README.zh.md 顶部版本漂移修正（0.6.10 → 1.4.1），并新增**「诚实边界 / Honest boundaries」**段：只在 Windows 真机验过、macOS 只跑语法与 verify:install、翻译依赖免费接口、一键修会改文件但有 `.bak`、不是沙箱、调用次数只是下界。
+
+### 修「一键修」点了没反应（描述 13 字场景）
+
+- 根因：体检判「过短」是 **< 20 字**，一键修只处理 **< 8 字** —— 13 字两边都不算，点下去返回 `changed:false`，看起来像按钮坏了。
+- 现在两边共用 `checks.js` 的 `MIN_DESCRIPTION_LENGTH`；短描述**保留原词**并接上正文第一段（≤200 字），不编内容。
+- 正文里没有可用句子时不再静默：返回明确原因并显示在提示里，也不连带挡住同文件里 name 的修复。
+
+### 新增：`dsh-skill-cockpit-doctor`（自查 CLI）+ 平台矩阵
+
+- `bin/cockpit-doctor.mjs`：一条命令回答「面板为什么没出现」——状态目录可写、`user-dsh` 技能根、技能数、profile 装配里有没有挂这个包、译文缓存条数。
+- `--json` 给机器读；`--home <dir>` 把全部路径重定向到临时 home（测试/CI 用，不碰真实 `~/.dsh`）；`--fix` 只补能安全补的（状态目录、缺失的 `user-dsh`）；`--version` 在参数解析之前处理。
+- 退出码：`0` 就绪 / `1` 有要修的 / `2` 环境问题。
+- 新增 `docs/platforms.md`：平台矩阵，一格一句判断依据 + 验证状态（Windows 真机 / macOS·Linux 只跑语法与我装 / 别的 harness 不支持）。
+- 接线：`npm test` 加「诊断 CLI」套件（11 项，含 `--dry-run` 不落盘）；`verify:install` 增加 2 项——**用装机副本的 bin 跑 `--version`**、装机副本 `doctor --home --fix` 必须退出 0。
+- `--dry-run`：只报「将创建/将修」不写盘，退出码仍表达"有事要做"（1）。
+- `--report <file>`：把同一份 JSON 报告写到指定文件（只读，不改任何状态）；写不出去时退出码降为 2 并说明原因。
+- `docs/self-check.md`：把提示词第 7 步那 10 条逐条打勾 + 证据；**CI 首跑与发版 tag 两条明确留空**，不装完成。
+- doctor 新增 `session-logs` 检查：数得清 `<home>/.dsh/sessions` 下的会话日志就报数，读不到就写原因（用量页为 0 时先看这一项）。
+- README 安装段改成三步（装包 → 挂 profile → 重启并自查），每步都写「期望看到什么」；顺手修掉示例里过期的 `1.0.0`。
+- **删除兜底回收站也去本地化**：`deleteSkill` 的默认 `trashRoot` 从写死 `D:\回收站\技能面板删除` 改为与回收站一致的 `<DSH home>/skill-panel/trash`（界面本来就会传配置值，这里是给脚本/库调用兜底）。
+- **未安装索引默认不配置**：`DEFAULT_UNDECLARED_INDEX` 不再指向某个作者本机的 `D:\管家\…` 文件，改为空字符串（面板显示“未配置”）；已有使用者可用 `undeclaredIndexPath` 显式指定。
+- 界面里“来源目录”输入框的占位符由 `D:\path\to\skill-folder` 改为 `<path to skill folder>`。
+- **备份默认根去本地化**：`DEFAULT_BACKUP_ROOT` 从写死 `D:\回收站\技能面板备份` 改为 `<DSH home>/skill-panel/backups`（与回收站一致），装到别的机器上不会再往 D 盘写；README 的本机路径也一并清掉。\r\n- **工具侧备份落点跟随配置**：`skill_panel` 的 `action=backup`（单个 / 全量）此前绕开 `backupRoot`，总是写默认目录；现在与 HTTP 路由共用同一落点，并加路由级回归（工具与路由各备一次，均落在 `<dshHome>/skill-panel/backups`）。
+- **备份根可配置**：新增 `backupRoot` 配置键；备份路由统一走 `backupRootOf(cfg)`（默认 `<dshHome>/skill-panel/backups`），不再绕过 `dshHome` 直接写 `~/.dsh`。
+- `verify:install` 加严到 **13 项**：新增「空 home 上 doctor 必须先报需要修」「`--fix` 后复检全绿」「再 `--fix` 仍全绿（幂等）」三条，避免"装完就全绿"掩盖真实状态。
+- 文档诚实边界校正：README / `docs/platforms.md` 明确写出 CI **已配置但还没推送跑过**，不再把"配好了"写成"跑过了"。
+- 新增「文档一致性」自测（第 19 套）：README 的 tests 徽章必须等于 run-all 真实套件数（真抓到过一次 17 写死）、每个 doctor 检查项必须在 troubleshooting 表里有条目、README 的 `docs/` 链接必须存在。
+- 新增「文案字典」自测（第 18 套）：zh / en key 必须一一对应、无空文案、同一 key 的 `{placeholder}` 集合一致——防再出现「界面显示原始 key」。
+- doctor 新增 `zstd` 检查项：没有 zstd 解压 API 时直接说明「用量会偏低甚至为 0」，不用再猜。
+- 用量页诚实披露：`GET /usage` 现在返回 `zstd` 能力标记，Node 缺 zstd 解压 API 时返回 `note`，页面显示「次数会偏低甚至为 0」而不是静默的 0。
+- 修 CI 可移植性（GitHub Actions 三次全红，15 秒即挂）：5 个测试文件把 `file:///D:/插件/...` 写死成绝对导入 → 改相对导入；`run-routes` / `run-usage` 静态导入 Node 24 才有的 `zstdCompressSync` → 改为能力探测（路由用纯文本 fixture 兜底，用量在无 zstd 时明确 SKIP）；`run-toggle` 在干净 home 没有 `~/.dsh/skills` 时直接退出 → 自动建空目录。
+- 实测：Node 24 `17/17`；Node 22 `run-usage` 61/61；Node 20 `17/17`（`run-usage` 打 SKIP）。
+- 新增 `test/run-presets.mjs`（14 项）：预设挂载的**安全边界**——真实目录 unmount 必须拒绝、detach 只搬技能且同名冲突不覆盖、presetId/技能名不得路径穿越。`npm test` 现 **17 套件**。
+- 新增 `docs/troubleshooting.md`：六个 doctor 检查 id 各自「在问什么 / 出问题怎么办」，加三个常见现象（面板不出现、用量全 0、一键修修不了）与「它查不到什么」。
+
+### 小改
+
+- 列表里展开某条技能时，描述按整段显示（不再单行省略）。
+
 ## 1.4.1 — 2026-10-27
 
 ### 修「翻译」按钮：真机可用 + 名字就叫「翻译」

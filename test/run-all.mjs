@@ -33,6 +33,12 @@ const suites = [
   ['自动加载接线', join(import.meta.dirname, 'run-autoload-wire.mjs')],
   // 1.2.0：渲染冒烟（点击「新建技能」必须真出创建表单，白屏回归挡在这里）
   ['渲染冒烟', join(import.meta.dirname, 'render-create.mjs')],
+  // 自证：doctor CLI（版本/--home/--fix/退出码）
+  ['诊断 CLI', join(import.meta.dirname, 'run-doctor.mjs')],
+  // 预设挂载：只删链接、不删真实目录；detach 不覆盖同名
+  ['预设挂载', join(import.meta.dirname, 'run-presets.mjs')],
+  ['文案字典', join(import.meta.dirname, 'run-i18n.mjs')],
+  ['文档一致性', join(import.meta.dirname, 'run-docs.mjs')],
 ];
 
 const results = [];
