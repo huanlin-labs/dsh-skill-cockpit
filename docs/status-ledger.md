@@ -39,7 +39,8 @@
 | tag 触发的 `registry-tag` 任务 | **尚未跑过** | 下次打 tag 时验证。 |
 | 三平台全量首绿 | **通过** | run `41076632643`（commit `77f5276`）：27 个 job 全绿 —— ubuntu / macOS 15 / windows × Node 20/22/24，语法 + 全量套件 + `verify:install`。macOS 固定用 `macos-15`，避开 `macos-latest` 的镜像退役抖动。 |
 | npm `1.5.1` | **已发布可解析** | `npm view dsh-skill-cockpit dist-tags.latest` = `1.5.1`。 |
-| `1.5.1` 的 tag / Release / registry-tag | **本次发版验证中** | tag `v1.5.1` 与 GitHub Release 建成后，以 `release:check` 与本表下一行补记。 |
+| `1.5.1` 的 `release:check` | **10 PASS / 0 FAIL / 0 UNKNOWN** | 2026-10-30 实跑：npm latest 1.5.1、本地/远端 tag `v1.5.1`（commit `3d28d38`）、GitHub Release、keywords、repository、bundle patch、topics 全 PASS；结论「四处一致，可以发版」。 |
+| `1.5.1` 的 `registry-tag` | **通过** | tag 推送触发的 run `41077709997` 全绿（27 个 matrix job + `registry-tag`）；npm `latest` = `1.5.1`。 |
 
 ## 五、边界说明
 
