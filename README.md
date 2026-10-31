@@ -16,8 +16,13 @@
 > **Honest boundary.** This is **not a sandbox**. It manages only the skill roots DSH itself
 > exposes and writes only inside `~/.dsh/skills` and `~/.agents/skills`; it cannot stop other
 > processes, manual edits, or skills invoked outside DSH. CLI / doctor / `verify:install` are
-> covered by automated tests on this Windows machine. Host-half guards need a DSH restart, and the
-> sidebar entry and main-page slot are confirmed active after a real restart, but a button-by-button visual re-check has **not** been done — treat the visual layer as 未验证 (not yet verified)**. CI runs the full suites and `verify:install` on ubuntu, macOS 15 and Windows × Node 20/22/24; [run 41076632643](https://github.com/huanlin-labs/dsh-skill-cockpit/actions/runs/41076632643) is green on all 27 jobs.
+> covered by automated tests on this Windows machine. Host-half guards need a DSH restart. After a
+> real 1.5.1 restart on 2026-10-31 the sidebar entry and main-page `skill-panel` slot are active,
+> the panel renders 76/76 skills with a clean 76-item health check, the New Skill form opens and
+> cancels, Translate wrote 11 entries, and the autoload tier round-trips strict↔standard;
+> `cockpit-doctor --json` is 9/9. A **button-by-button exhaustive** visual pass has **not** been
+> done, so unlisted controls remain 未验证 (not yet verified) and rest on their unit/route evidence. CI runs the full suites and
+> `verify:install` on ubuntu, macOS 15 and Windows × Node 20/22/24; [run 41076632643](https://github.com/huanlin-labs/dsh-skill-cockpit/actions/runs/41076632643) is green on all 27 jobs.
 A **skill cockpit for [DSH](https://github.com/deepseek-ai)** (DeepSeek Harness): one page in the
 app-level navigation that shows every skill the machine actually exposes, says **why** a skill is
 missing, and lets you toggle a single skill without editing anything but its entry-file name.

@@ -4,7 +4,7 @@
 
 > **源码 vs npm**：`1.5.1` 已发布，源码与 npm 包一致；改动见 `CHANGELOG.md` 顶部。
 
-> **诚实边界。** 它**不是沙箱**：只管理 DSH 自己暴露的技能根，只写 `~/.dsh/skills` 与 `~/.agents/skills`；管不了别的进程、手工改动，也管不了绕过 DSH 的调用。CLI / doctor / `verify:install` 在本机 Windows 有自动化实测；源码里新加的宿主半守卫要重启 dsh 才生效，重启后已确认左侧入口与主区页面槽位 active，但**未做逐按钮的视觉复验**，视觉层仍按「未验证」看待。CI 已在 ubuntu / macOS / windows × Node 20/22/24 上跑全量套件与 `verify:install`。
+> **诚实边界。** 它**不是沙箱**：只管理 DSH 自己暴露的技能根，只写 `~/.dsh/skills` 与 `~/.agents/skills`；管不了别的进程、手工改动，也管不了绕过 DSH 的调用。CLI / doctor / `verify:install` 在本机 Windows 有自动化实测；源码里新加的宿主半守卫要重启 dsh 才生效。2026-10-31 在 1.5.1 真机重启后已实测：左侧「技能」入口与主区 `skill-panel` 槽位 active，面板渲染 76/76 技能、体检 76 条无问题；「新建技能」表单可开可取消、「翻译」一次写入 11 条译文、「自动加载」严格↔标准档位往返生效；`cockpit-doctor --json` 9/9。**未逐按钮全量点完**，其余未单独实测的按钮仍按「未验证」看待、以其单测/接口证据为准。CI 已在 ubuntu / macOS / windows × Node 20/22/24 上跑全量套件与 `verify:install`。
 DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加一个「技能」入口，
 点开是**主区一整页**，列出本机**全部**技能、**按技能开关**，并接「未安装技能索引」做第二跳。
 
@@ -314,7 +314,7 @@ node test/run-all.mjs [报告目录]
   （`app.asar` 内未见 `reviewer-response` 之类的技能文件；`E:\DSH\resources` 下也无）。面板不会替它猜。
 - `@deepseek-ai/dsh-client-*` 原生 Slot 树（设计方案的 H4）**已实查**：本次改挂载面时从**运行中的 `E:\DSH\resources\app.asar`**（0.2.0-rc.2）字节扫描确认 `sidebar.panellist` / `main` 两个座位、`order` 升序语义、以及各占用方（`client-ui-plugin-manager` 0 / `client-ui-schedule` 10 / task-board 20 / ssh 40）。
 - 生态惯例与户主指定顺序**不一致**（已如实上报）：`dsh-ssh` 源码注释把 0/10/20/30/40 记为「Plugins / Schedule / board / **skill center 30**」，即生态预留 30 给"技能中心"；本包按户主明确要求取 **5**（夹在 插件 0 与 自动化任务 10 之间）。要改回 30 只需改 `lib/client.js` 的 `PANEL_ORDER` 一个数字。
-- 重启后**真实 GUI 渲染**（左排出现「技能」、点击开整页、右侧栏不再出现）**尚未经人眼确认** —— `lib/client.js` 是启动时载入的，必须由户主重启 dsh 才装载。
+- 重启后**真实 GUI 渲染**已实查（2026-10-31，1.5.1）：左排「技能」点击打开整页、主区 `skill-panel` 槽位 active、76/76 技能列表与体检摘要正常；`lib/client.js` 由宿主启动时载入。
 
 ## 许可
 

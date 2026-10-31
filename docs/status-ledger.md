@@ -26,7 +26,7 @@
 | `bundledSkillDir` 取值 / 会话可见 39 vs 磁盘 31 的差额 | **已定位，不是 bug** | 实测 `DSH_BUNDLED_SKILL_DIR` 未设置、profile 里也没有 `bundledSkillDir` ⇒ 本机**没有 bundled 根**，面板显示"未挂载"是对的。差额来自宿主 `registerProvider` 直供的非文件技能（面板自己的 `checks.providerNote` 已写明只能看不能开关）；文件根实测 65 个目录 / 65 个 `SKILL.md`，一致。 |
 | 原生 Slot 树（H4） | **已实查** | 从运行中的 `app.asar`（0.2.0-rc.2）字节扫描确认两个座位与 `order` 语义。 |
 | 面板 `order` 取 5 还是生态惯例 30 | **已裁决：5** | 按户主明确要求；改回只需改 `lib/client.js` 的 `PANEL_ORDER`。 |
-| 重启后真实 GUI 渲染 | **待户主一眼确认** | `lib/client.js` 启动时载入；本轮无法代替人眼。 |
+| 重启后真实 GUI 渲染 | **已实查（2026-10-31 · 1.5.1）** | 左侧「技能」入口可点开主区整页；`Slots/listSubTree` 中 `sidebar.panellist` 与 `main` 的 `skill-panel` 均 `active: true`；面板渲染 76/76 技能，体检 76 条无问题。 |
 
 ## 四、CI 与发布
 
@@ -58,3 +58,19 @@
 | 自测文档计数 | **实测一致** | 2026-10-27 复跑：`run-doctor.mjs` **23/23**、`run-repair.mjs` **15/15**，与 `docs/self-check.md` 写的数字相同。 |
 | 安全加固后跨版本复验 | **通过** | 2026-10-27：Node 20.20.2、22.11.0 各跑 `test/run-all.mjs`，均 **19/19**（含新增的 82 条路由断言与 17 条文档断言）。 |
 | 源码态 vs npm 已发布态 | **已声明并加闸** | 中英 README 顶部均有差异声明；`run-docs` 断言两处声明存在。 |
+
+## 七、2026-10-31 重启后真机复验（1.5.1）
+
+> 环境：Windows 11 · DSH 桌面版 · 本机 dsh 进程已由户主重启；插件版本 `/ping` = `1.5.1`。
+
+| 项 | 判定 | 证据 |
+|---|---|---|
+| 宿主加载版本 | **通过** | `GET http://127.0.0.1:19387/__dsh-skill-panel/ping` 返回 `{"ok":true,"name":"dsh-skill-cockpit","version":"1.5.1",...}`；路由表含 `/ping` `/skills` `/body` `/undeclared` `/usage` `/checks` `POST /toggle` `/presets/*`。 |
+| 左侧入口 | **通过** | 原生侧栏点击「技能」进入主区整页；`Slots/listSubTree(root="sidebar.panellist")` 中 `{registrant:"Gb", id:"skill-panel", order:5, active:true}`。 |
+| 主区槽位 | **通过** | `Slots/listSubTree(root="main")` 的 `occupants` 含 `{registrant:"Gb", key:"skill-panel", priority:0, active:true}`。 |
+| 面板渲染与体检 | **通过** | 页面标题「技能 共 76 条 · 启用 76 · 停用 0 · 模型实际可见 76」；体检摘要「体检通过：76 条技能，没发现问题」。 |
+| 新建技能 | **通过（开→取消）** | 点「+ 新建技能」出现表单（技能名 / 模板 / 简介 / 何时使用 / 正文 Markdown / 取消 / 保存）；点「取消」关闭，未写盘。 |
+| 翻译 | **通过** | 点「翻译」后页面显示「✓ 已翻译 11 个」；`~/.dsh/skill-cockpit/gloss.json` 的 `gloss` 检查由 24 条增至 35 条。 |
+| 自动加载档位 | **通过（往返恢复）** | 点「严格」后 `skill_autoload status` = `strict`；点「标准」后恢复 `standard`。 |
+| 一键修 | **无可修项，未触发** | 体检 76 条全部通过，页面不显示「一键修」；这是“没有缺陷可修”的结果，不是按钮缺失。 |
+| doctor | **通过** | `node bin/cockpit-doctor.mjs --json` exit 0，9/9 ok：local-config / roots-safe / state / user-skills / skill-count:76 / assembly / gloss:35 / session-logs:154 / zstd。 |
