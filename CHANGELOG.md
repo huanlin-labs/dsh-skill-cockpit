@@ -1,3 +1,8 @@
+## 1.5.2 — 2026-11-01
+
+### 元数据：keywords 扩面
+- npm keywords 从 9 个补到 18 个，新增 `deepseek` / `agent-skills` / `skill` / `skill-panel` / `harness` / `ai-agent` / `productivity` / `panel` / `settings`。
+- 目的：插件市场与聚合站靠 keywords 做分类探测，扩面以提高被收录概率；**纯元数据改动，无代码变更**。
 ## 1.5.1 — 2026-10-30
 
 ### CI 三平台修复
