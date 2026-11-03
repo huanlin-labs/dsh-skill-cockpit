@@ -544,6 +544,24 @@ try {
   );
   check('备份确实写出了 SKILL.md', Boolean(backup.json?.dest) && existsSync(join(backup.json.dest, 'SKILL.md')));
 
+  // Regression: `all=true` used to pass writableRootList() objects (not strings)
+  // into backupAll(), so existsSync() silently skipped every root and the UI
+  // reported "0 个文件 / 0 字节". It must discover the real fixture.
+  const allBackup = await hit(`${BASE}/skill/backup`, {
+    method: 'POST',
+    body: { all: true },
+  });
+  check(
+    '全量备份：发现并复制技能根里的技能',
+    allBackup.status === 200 && allBackup.json?.ok === true && allBackup.json?.count >= 1,
+    `${allBackup.status} count=${allBackup.json?.count} ${allBackup.json?.error ?? ''}`,
+  );
+  check(
+    '全量备份：确实写出 fixture 的 SKILL.md',
+    Boolean(allBackup.json?.dest) && existsSync(join(allBackup.json.dest, 'route-probe', 'SKILL.md')),
+    String(allBackup.json?.dest ?? allBackup.json?.error),
+  );
+
   // A second app instance: explicit backupRoot must win over <dshHome>/skill-panel/backups.
   const customBackupRoot = join(probeRoot, 'custom-backups');
   const registered2 = [];
