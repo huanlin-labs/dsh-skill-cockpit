@@ -8,7 +8,7 @@
 
 ### 工程收尾
 - 新增 issue / PR 模板、`CONTRIBUTING.md`、`SECURITY.md`、`CODE_OF_CONDUCT.md`。
-- 新增核心视图渲染测试；刷新 README 截图与版本声明。
+- 新增核心视图渲染测试；刷新 README 截图与版本声明；新增 `docs/screenshots/tour.gif` 四页总览。
 
 ## 1.5.5 — 2026-11-03
 

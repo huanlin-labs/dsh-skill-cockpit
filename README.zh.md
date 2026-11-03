@@ -173,6 +173,8 @@ npx dsh-skill-cockpit-doctor
 
 深色主题、真实 CSS 渲染（1420px 宽）：
 
+![总览：列表 / 体检 / 分组 / 用量](https://raw.githubusercontent.com/huanlin-labs/dsh-skill-cockpit/main/docs/screenshots/tour.gif)
+
 ![列表页：76 条技能、体检通过、每行四态](https://raw.githubusercontent.com/huanlin-labs/dsh-skill-cockpit/main/docs/screenshots/list.png)
 
 ![体检页：76 条技能，没发现问题](https://raw.githubusercontent.com/huanlin-labs/dsh-skill-cockpit/main/docs/screenshots/checkup.png)

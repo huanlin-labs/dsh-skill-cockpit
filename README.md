@@ -274,6 +274,8 @@ nothing errors. (The shipped default points at the author's own vault — set yo
 
 Rendered from the shipped CSS in the dark theme (1420 px wide):
 
+![Tour: list, checkup, groups, usage](docs/screenshots/tour.gif)
+
 ![List: 76 skills, clean health check, four-state pill on every row](docs/screenshots/list.png)
 
 ![Checkup: 76 skills, no problems found](docs/screenshots/checkup.png)
