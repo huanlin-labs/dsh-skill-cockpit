@@ -1,0 +1,62 @@
+name: Bug report
+description: Something in the skill cockpit is broken or misleading.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please do **not** paste personal paths or full
+        skill bodies. A minimal reproduction is more useful than a screenshot
+        alone.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `npm view dsh-skill-cockpit version` or `dsh-skill-cockpit-doctor --version`.
+      placeholder: "1.5.6"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Windows desktop DSH
+        - macOS desktop DSH
+        - Linux desktop DSH
+        - Other / not a DSH install
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you click or call, what did you expect, what did you get?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the Skills page
+        2. Click ...
+        3. See ...
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Doctor output
+      description: Paste `node bin/cockpit-doctor.mjs --json` (redact personal paths if needed).
+      render: json
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues.
+          required: true
+        - label: I removed secrets, tokens and personal paths from this report.
+          required: true

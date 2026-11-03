@@ -176,4 +176,56 @@ const after = collect(rerenderRoot())
 const form = after.find((node) => node.props && node.props['data-dsh-manage'] === 'create')
 if (!form) throw new Error('点了「新建技能」但没渲染出创建表单（data-dsh-manage=create 缺失）')
 
-console.log('渲染冒烟通过：首屏可渲染，「新建技能」能打开创建表单')
+// 3) 取消创建表单，确认回到列表（不写盘）
+const cancel = after.find(
+  (node) => node.type === 'button' && textOf(node).trim() === '取消' && typeof node.props.onClick === 'function',
+)
+if (!cancel) throw new Error('创建表单里找不到「取消」按钮')
+cancel.props.onClick()
+for (let guard = 0; rerenderRequested && guard < 20; guard += 1) {
+  rerenderRequested = false
+  rerenderRoot()
+}
+if (collect(rerenderRoot()).some((node) => node.props && node.props['data-dsh-manage'] === 'create')) {
+  throw new Error('点了「取消」但创建表单还在')
+}
+
+// 4) 七个视图逐个切换：只要求不抛错、且每个视图都渲染出自己的根/加载态。
+//    这里不 mock 网络，所以 usage / checks / presets 会停在加载态；关键是
+//    切换本身不能触发渲染期 ReferenceError（白屏回归）。
+const viewExpectations = {
+  list: (nodes) => nodes.some((node) => node.props && node.props['data-dsh-view-panel'] === 'list'),
+  groups: (nodes) => nodes.some((node) => node.props && node.props['data-dsh-view-panel'] === 'groups'),
+  usage: (nodes) =>
+    nodes.some((node) => node.props && node.props['data-dsh-usage'] === 'root') ||
+    nodes.some((node) => textOf(node).includes('读取中')),
+  trash: (nodes) => nodes.some((node) => node.props && node.props['data-dsh-view-panel'] === 'trash'),
+  vault: (nodes) => nodes.some((node) => node.props && node.props['data-dsh-view-panel'] === 'vault'),
+  checks: (nodes) =>
+    nodes.some((node) => node.props && node.props['data-dsh-checks'] === 'root') ||
+    nodes.some((node) => textOf(node).includes('读取中')),
+  presets: (nodes) => nodes.some((node) => textOf(node).includes('预设') || textOf(node).includes('读取')),
+}
+
+const tabs = collect(rerenderRoot()).filter(
+  (node) =>
+    node.type === 'button' &&
+    node.props &&
+    typeof node.props['data-dsh-view'] === 'string' &&
+    Object.prototype.hasOwnProperty.call(viewExpectations, node.props['data-dsh-view']),
+)
+if (tabs.length !== 7) throw new Error(`视图切换应有 7 个按钮，实际 ${tabs.length}`)
+
+for (const [view, expected] of Object.entries(viewExpectations)) {
+  const tab = tabs.find((node) => node.props['data-dsh-view'] === view)
+  if (!tab || typeof tab.props.onClick !== 'function') throw new Error(`找不到视图按钮：${view}`)
+  tab.props.onClick()
+  for (let guard = 0; rerenderRequested && guard < 20; guard += 1) {
+    rerenderRequested = false
+    rerenderRoot()
+  }
+  const nodes = collect(rerenderRoot())
+  if (!expected(nodes)) throw new Error(`视图「${view}」切换后没有渲染出预期内容`)
+}
+
+console.log('渲染冒烟通过：首屏可渲染，新建技能表单可开可取消，7 个视图切换均可渲染')

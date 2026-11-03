@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/huanlin-labs/dsh-skill-cockpit/security/advisories/new
+    about: Please report vulnerabilities privately, not as a public issue.
+  - name: Status ledger
+    url: https://github.com/huanlin-labs/dsh-skill-cockpit/blob/main/docs/status-ledger.md
+    about: Check what is actually implemented and verified before filing.

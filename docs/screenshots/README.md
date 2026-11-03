@@ -1,14 +1,14 @@
 # Screenshots
 
-Four PNGs, taken from a real DSH install running the current version. Referenced by
+Four PNGs, taken from a real DSH install running 1.5.6 (2026-11-03). Referenced by
 `README.md` and `README.zh.md`.
 
-| File | View | Must show |
+| File | View | Shows |
 |---|---|---|
-| `list.png` | 列表 | grouped cards, source-root tags, per-skill switches, 「看正文」 |
-| `groups.png` | 分组 | left card pane + group boxes, one group's switch in the mixed state, one group fully off (greyed) |
-| `usage.png` | 用量 | per-skill invocation counts, including a few zeros |
-| `problems.png` | 问题 | at least one real finding with its reason |
+| `list.png` | 列表 | 76 skills, clean 76-item health check, grouped cards, per-skill four-state controls |
+| `groups.png` | 分组 | left card pane + group boxes, group-level four-state control |
+| `usage.png` | 用量 | per-skill invocation counts from the local session-log scan |
+| `checkup.png` | 体检 | 76 skills scanned, no problems found (the healthy state; problem rows are only present when a defect exists) |
 
 Rules:
 

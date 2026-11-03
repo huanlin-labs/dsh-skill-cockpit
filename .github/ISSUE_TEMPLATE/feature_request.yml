@@ -1,0 +1,53 @@
+name: Feature request
+description: Suggest a capability or a better interaction for the skill cockpit.
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This project prefers small, verifiable improvements over broad
+        "make it better" requests. Please describe the job to be done.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the situation, not only the proposed button.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should the panel do? Where should it live?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing workarounds, other plugins, or manual steps.
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Which area?
+      options:
+        - Skill list / search / sort
+        - Skill editing / create / repair
+        - Groups / presets / vault / trash
+        - Usage / checkup
+        - Autoload
+        - HTTP routes / tool actions
+        - Documentation / packaging / CI
+        - Other
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and the status ledger.
+          required: true
+        - label: This is not a request for a fake adapter to another harness.
+          required: true

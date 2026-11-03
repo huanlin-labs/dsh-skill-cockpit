@@ -1,4 +1,4 @@
-# 状态台账（2026-10-27 校准）
+# 状态台账（2026-11-03 校准）
 
 > 用途：把"待办 / 边界 / 未实查"按**代码与实测**逐条判一次，防止拿过期清单排期。
 > 判定只有三种：**已实现**（给证据）/ **真缺**（给下一步）/ **有意不做**（给理由）。
@@ -74,3 +74,16 @@
 | 自动加载档位 | **通过（往返恢复）** | 点「严格」后 `skill_autoload status` = `strict`；点「标准」后恢复 `standard`。 |
 | 一键修 | **无可修项，未触发** | 体检 76 条全部通过，页面不显示「一键修」；这是“没有缺陷可修”的结果，不是按钮缺失。 |
 | doctor | **通过** | `node bin/cockpit-doctor.mjs --json` exit 0，9/9 ok：local-config / roots-safe / state / user-skills / skill-count:76 / assembly / gloss:35 / session-logs:154 / zstd。 |
+
+## 八、2026-11-03 1.5.6 源码补丁与当前页面复核
+
+> 1.5.6 是**源码补丁，尚未发布**：npm `latest` 仍为 1.5.5，tag / GitHub Release 未建。下面把「源码已验」和「发布面待办」分开写，避免把 1.5.6 说成已发布。
+
+| 项 | 判定 | 证据 |
+|---|---|---|
+| 三处版本串 | **已修** | `package.json` / `lib/index.js` / `lib/client.js` 均为 `1.5.6`；`npm test` 19/19；`npm run verify:install` 13/13，装机副本 `/ping` 返回 `dsh-skill-cockpit 1.5.6`。 |
+| 当前页面渲染 | **通过** | 页脚 `面板版本 v1.5.6`；标题 `共 76 条 · 启用 76 · 停用 0 · 模型实际可见 76`；体检摘要 `体检通过：76 条技能，没发现问题`。 |
+| 七个视图 | **通过（渲染层）** | 列表 / 分组 / 预设 / 用量 / 回收站 / 后备库 / 体检逐页点开并读到各自根内容；`test/render-create.mjs` 断言 7 个视图切换可渲染。 |
+| 一键修 | **通过（真机 + 临时夹具）** | 在用户技能根建临时坏技能（缺 `name`、`description: 短`）→ 点「一键修」→ 文件补出 `name: skillpanel-repair-probe-20261103b` 与 `description: "短——一键修临时探针 B"`，并留下 `SKILL.md.bak-2026-11-03T12-26-43-764Z`；页面提示 `✓ 已修复 … description 太短（12 字），补上正文第一段`。夹具验完已整体移到本机回收站的 `skillpanel-repair-probes-20261103` 文件夹，技能数回到 76。 |
+| 发布面 | **未完成（预期）** | `npm run release:check`：PASS 6 / FAIL 4 —— npm latest 1.5.5、本地 tag `v1.5.6`、远端 tag `v1.5.6`、GitHub Release `v1.5.6` 均缺；keywords / repository / bundle patch / topics 四项 PASS。 |
+| 重启后宿主半 | **未在 1.5.6 重启验证** | 2026-11-03 现场 `GET /__dsh-skill-panel/ping` 仍返回 **1.5.1**；页面页脚 `v1.5.6` 来自已更新的客户端半。宿主半要重启 dsh 后才加载 1.5.6。1.5.1 的重启证据仍有效（§七）。 |
