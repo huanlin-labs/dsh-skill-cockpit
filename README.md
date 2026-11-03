@@ -4,14 +4,16 @@
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![tests](https://img.shields.io/badge/tests-19%2F19%20suites-brightgreen)](test)
 
-> **v1.5.1 — runs end-to-end on a real desktop install.**
+> **v1.5.5 — runs end-to-end on a real desktop install.**
 > 19/19 self-test suites, all green · `npm run verify:install` packs the tarball, installs it into an
 > empty directory and boots **that copy** (13/13 checks).
-> Published as [`dsh-skill-cockpit`](https://www.npmjs.com/package/dsh-skill-cockpit); npm `latest` = **1.5.1**.
+> Published as [`dsh-skill-cockpit`](https://www.npmjs.com/package/dsh-skill-cockpit); npm `latest` = **1.5.5**.
 > (The bare name `dsh-skill-panel` belongs to a different author.)
 
-> **Source vs npm:** `1.5.1` is both this source tree and the current npm release; the items are listed
-> at the top of `CHANGELOG.md`.
+> **Source vs npm:** `1.5.5` is both this source tree and the current npm release. The last **code**
+> change shipped in `1.5.1`; `1.5.2`–`1.5.5` are metadata-only (keywords, publish-token plumbing), so
+> the runtime verification quoted below still describes the code you install. Items are listed at the
+> top of `CHANGELOG.md`.
 
 > **Honest boundary.** This is **not a sandbox**. It manages only the skill roots DSH itself
 > exposes and writes only inside `~/.dsh/skills` and `~/.agents/skills`; it cannot stop other
