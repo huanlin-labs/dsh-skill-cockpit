@@ -6,6 +6,7 @@
 - 这是 1.5.1 之后第一次包含源码修正的补丁版；1.5.2–1.5.5 均无功能变更。
 - **生效条件**：重启前运行中的 DSH 进程仍加载旧宿主半，`/ping` 会返回 `1.5.1`；重启后才会报 `1.5.6`。装机副本与 `verify:install` 已按 1.5.6 验证。
 - **2026-11-04 重启后复验**：`/ping` 返回 `version=1.5.6`；「备份全部」生成 `2026-11-04T09-30-32-824Z`，磁盘实查 76 个技能 / 2242 个文件 / 79,703,006 字节。
+- **2026-11-04 发布**：npm `dsh-skill-cockpit@1.5.6` 已发布并成为 `latest`；git tag `v1.5.6` 与 [GitHub Release](https://github.com/huanlin-labs/dsh-skill-cockpit/releases/tag/v1.5.6) 均已建立。
 
 ### 工程收尾
 - 新增 issue / PR 模板、`CONTRIBUTING.md`、`SECURITY.md`、`CODE_OF_CONDUCT.md`。

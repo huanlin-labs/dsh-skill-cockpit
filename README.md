@@ -4,31 +4,28 @@
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![tests](https://img.shields.io/badge/tests-19%2F19%20suites-brightgreen)](test)
 
-> **v1.5.6 — source tree (npm latest 1.5.5).**
+> **v1.5.6 — published on npm.**
 > 19/19 self-test suites, all green · `npm run verify:install` packs the tarball, installs it into an
 > empty directory and boots **that copy** (13/13 checks; `/ping` reads back `1.5.6`).
-> Published as [`dsh-skill-cockpit`](https://www.npmjs.com/package/dsh-skill-cockpit); npm `latest` = **1.5.5**,
-> so installers get 1.5.5 until 1.5.6 is published.
+> Published as [`dsh-skill-cockpit`](https://www.npmjs.com/package/dsh-skill-cockpit); npm `latest` = **1.5.6**.
 > (The bare name `dsh-skill-panel` belongs to a different author.)
 
-> **Source vs npm:** this tree is `1.5.6`; npm `latest` is still `1.5.5`. 1.5.6 fixes the version
-> string that 1.5.2–1.5.5 left at `1.5.1` in `lib/index.js` / `lib/client.js`, so the runtime now
-> reports the package's real version. Details are at the top of `CHANGELOG.md`.
+> **Release:** `v1.5.6` is on npm, tagged in git, and has a GitHub Release. It fixes the version
+> string that 1.5.2–1.5.5 left at `1.5.1` in `lib/index.js` / `lib/client.js`, and fixes
+> `Back up all` returning zero files. Details are at the top of `CHANGELOG.md`.
 
 > **Honest boundary.** This is **not a sandbox**. It manages only the skill roots DSH itself
 > exposes and writes only inside `~/.dsh/skills` and `~/.agents/skills`; it cannot stop other
 > processes, manual edits, or skills invoked outside DSH. CLI / doctor / `verify:install` are
-> covered by automated tests on this Windows machine. Host-half guards need a DSH restart; on this
-> machine the running host still answers `/ping` with **1.5.1** until that restart (the page footer
-> reads 1.5.6 from the already-updated client bundle). On 1.5.1 a real restart on 2026-10-31 made the sidebar entry and main-page `skill-panel` slot active,
-> and verified New Skill / Translate / Autoload. On 1.5.6 the live page renders 76/76 skills with
-> a clean 76-item health check; this round exercised List / Groups / Presets / Usage / Trash /
-> Vault / Preferences / Checkup, plus one-click repair against a temporary malformed skill (name
-> and short description repaired, `.bak` written, fixture removed afterwards). `verify:install`
-> boots a clean copy whose `/ping` reports 1.5.6. A **button-by-button exhaustive** visual pass has
-> **not** been done, so unlisted controls remain 未验证 (not yet verified) and rest on their
-> unit/route evidence. CI runs the full suites and `verify:install` on ubuntu, macOS 15 and
-> Windows × Node 20/22/24; [run 41076632643](https://github.com/huanlin-labs/dsh-skill-cockpit/actions/runs/41076632643) is green on all 27 jobs.
+> covered by automated tests on this Windows machine. The running host was restarted on 2026-11-04
+> and `/ping` reports **1.5.6**. On 1.5.6 the live page renders 76/76 skills with a clean 76-item
+> health check; this round exercised List / Groups / Presets / Usage / Trash / Vault / Preferences /
+> Checkup, plus one-click repair against a temporary malformed skill (name and short description
+> repaired, `.bak` written, fixture removed afterwards). `Back up all` produced 76 skills / 2242
+> files / 79,703,006 bytes on disk. A **button-by-button exhaustive** visual pass has **not** been
+> done, so unlisted controls remain 未验证 (not yet verified) and rest on their unit/route evidence.
+> CI runs the full suites and `verify:install` on ubuntu, macOS 15 and Windows × Node 20/22/24;
+> [run 41076632643](https://github.com/huanlin-labs/dsh-skill-cockpit/actions/runs/41076632643) is green on all 27 jobs.
 A **skill cockpit for [DSH](https://github.com/deepseek-ai)** (DeepSeek Harness): one page in the
 app-level navigation that shows every skill the machine actually exposes, says **why** a skill is
 missing, and lets you toggle a single skill without editing anything but its entry-file name.

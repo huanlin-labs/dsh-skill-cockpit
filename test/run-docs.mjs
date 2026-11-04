@@ -103,9 +103,12 @@ check(
 );
 
 check(
-  '两版 README 都声明源码与 npm 的差异',
-  read('README.md').includes('Source vs npm') && read('README.zh.md').includes('源码 vs npm'),
-  '版本边界声明被删掉了',
+  '两版 README 都声明版本与发布状态',
+  read('README.md').includes('v1.5.6') &&
+    (read('README.md').includes('Release:') || read('README.md').includes('Source vs npm')) &&
+    read('README.zh.md').includes('v1.5.6') &&
+    (read('README.zh.md').includes('发布状态') || read('README.zh.md').includes('源码 vs npm')),
+  '版本/发布状态声明被删掉了',
 );
 
 check(
