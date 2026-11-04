@@ -298,6 +298,13 @@ check('渲染出根清单（含未挂载根与只读标记）', textA.includes('
 check('渲染出「唯一会写盘的动作」说明', textA.includes('只改入口文件名'));
 check('写明「开关即写盘」（一步切换的说明）', textA.includes('开关即写盘'));
 check('渲染出可交互按钮（刷新/筛选/看正文）', countType(a.tree, 'button').n >= 5, String(countType(a.tree, 'button').n));
+check('新增视图控件：密度 / 按根分组 / 导出清单', textA.includes('紧凑') && textA.includes('按根分组') && textA.includes('导出清单'));
+check('筛选条新增：被遮蔽 / 只读 / 被丢弃', ['被遮蔽', '只读', '被丢弃'].every((label) => textA.includes(label)));
+check('每行有单卡刷新按钮', textA.includes('刷新这一条'));
+
+// ---- 3a''. read-only filter only claims non-user roots ----------------------
+const readonlyView = await renderText({ 0: fixture, 1: null, 2: false, 3: 'readonly', 4: '', 5: null, 6: null });
+check('只读筛选不把用户级技能算进去（夹具全是 user-dsh）', readonlyView.text.includes('没有匹配的已装技能。'));
 
 // ---- 3a'. the no-useSessions fallback (no session binding on this seat) ----
 
