@@ -117,3 +117,15 @@
 | C8 / C9 | **单测通过** | 行根 `tabIndex=0`，↑↓ 移焦点、空格走同一开关路径；未安装索引「复制安装提示」生成含索引路径与投放位置的说明。真机未逐键/复点。 |
 | 后备库回归 | **真机通过（修复后）** | 修复前页面报 `reserveListPathOf is not defined`；补 helper 并重载宿主半后，`POST /vault/list` 返回 200，页面显示 `…\.dsh\skill-cockpit\后备库.md`、`共 190 条 · 37 组`、每行「装回」按钮。 |
 | 自动化 | **通过** | `npm test` 19/19；客户端 111/111；文档 17/17；渲染冒烟通过；路由 85/85（新增 vault/list 回归断言）。 |
+
+## 十一、2026-11-04 v1.6.0 发布闭环
+
+> 发布提交 `9a20da5`；tag `v1.6.0`（tag 对象 `a885f3b`）已推送到 GitHub。
+
+| 项 | 判定 | 证据 |
+|---|---|---|
+| 三处版本串 | **已统一** | `package.json` / `lib/index.js` / `lib/client.js` 均为 `1.6.0`；路由与页脚断言读回 1.6.0。 |
+| 自动化 | **全绿** | `npm test` 19/19；路由 85/85；客户端 111/111；文档 17/17；`verify:install` 13/13；渲染冒烟通过。 |
+| npm | **已发布** | `dsh-skill-cockpit@1.6.0` 已 publish；npm `dist-tags.latest` = **1.6.0**。 |
+| GitHub | **已同步** | `main` 推送 `d5705a5..9a20da5`；tag `v1.6.0` 已推送；Release：[v1.6.0](https://github.com/huanlin-labs/dsh-skill-cockpit/releases/tag/v1.6.0)。 |
+| release:check | **PASS 9 / FAIL 0 / UNKNOWN 1** | 版本、CHANGELOG、本地/远端 tag、GitHub Release、keywords、repository 均 PASS；npm 项因 `npm view` 网络超时记 UNKNOWN，随后用 registry `dist-tags` 独立核到 `latest=1.6.0`。 |
