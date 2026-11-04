@@ -237,6 +237,13 @@ try {
   check('ping 报出未安装索引状态', Boolean(ping.json?.undeclaredIndex));
   check('ping 报出的版本与 package.json 一致', ping.json?.version === pkgVersion, `${ping.json?.version} vs ${pkgVersion}`);
 
+  const vaultList = await hit(`${BASE}/vault/list`, { method: 'POST', body: {} });
+  check(
+    'POST vault/list → 200（reserveListPathOf 必须定义，否则后备库页报 ReferenceError）',
+    vaultList.status === 200 && vaultList.json?.ok === true,
+    `${vaultList.status} ${vaultList.json?.error ?? ''}`,
+  );
+
   const skills = await hit(`${BASE}/skills?cwd=${encodeURIComponent(process.cwd())}`);
   check('GET skills → 200 且是扫描报告', skills.status === 200 && Array.isArray(skills.json?.skills));
   check('报告含 6 类根元信息', Array.isArray(skills.json?.roots) && skills.json.roots.length >= 5, String(skills.json?.roots?.length));

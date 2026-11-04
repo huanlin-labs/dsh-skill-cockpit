@@ -330,6 +330,7 @@ const textB = b.text;
 check('第二跳命中时渲染信息卡', textB.includes('office-docx') && textB.includes('Word 处理'));
 check('信息卡标注只读不安装', textB.includes('只读 · 不安装'));
 check('信息卡带复制按钮', textB.includes('复制'));
+check('搜索区出现未安装索引预览', firstByProp(b.tree, 'data-dsh-index-preview') !== null);
 
 // ---- 3c. the switch is a real, clickable control (one-click flow) ----------
 //
@@ -338,6 +339,7 @@ check('信息卡带复制按钮', textB.includes('复制'));
 
 const c = await renderText({ 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null });
 check('渲染出可点的开关，带稳定 data 钩子', firstByProp(c.tree, 'data-dsh-skill-toggle') !== null);
+check('技能根面板可折叠', firstByProp(c.tree, 'data-dsh-roots-toggle') !== null && firstByProp(c.tree, 'data-dsh-roots') !== null);
 check(
   '可写根上的启用技能：开关不是禁用态',
   firstByProp(c.tree, 'data-dsh-skill-toggle')?.props?.disabled === false,
@@ -453,6 +455,8 @@ const pkgVersion = JSON.parse(
   readFileSync(join(import.meta.dirname, '..', 'package.json'), 'utf8'),
 ).version;
 
+check('紧凑模式有单行布局钩子', clientCode.includes('data-density="compact"] .cockpit-main'));
+
 // ---- 3g. 0.4.0 · 界面重构的结构性断言 -------------------------------------
 // 只增不减：锁住 0.4.0 的视觉决定，防止后续改动悄悄退回"每行一个描边卡片"，
 // 也防止重新引入宿主里根本不存在的令牌（它们的 var() 会静默吃 fallback）。
@@ -481,8 +485,74 @@ check(
 );
 check(
   '0.4.0：原始入口路径只在展开时渲染，列表里不再每行显示',
-  clientSource.includes("open ? h('div', { className: 'cockpit-path' }") &&
+  clientSource.includes("className: 'cockpit-expand'") &&
+    clientSource.includes("h('div', { className: 'cockpit-path' }") &&
     !clientCode.includes("style: { color: C.dim, fontSize: '11px', marginTop: '4px', wordBreak: 'break-all' }"),
+  '',
+);
+check(
+  '展开区是独立整行（在 meta 之后，flex 100% 换行），主栏保底 520px，不会把标题/路径挤成竖排',
+  clientSource.indexOf("className: 'cockpit-expand'") > clientSource.indexOf("className: 'cockpit-meta'") &&
+    clientCode.includes('.cockpit-row{display:flex;flex-wrap:wrap') &&
+    clientCode.includes('.cockpit-main{flex:1 1 520px') &&
+    clientCode.includes('.cockpit-expand{flex:1 1 100%;order:9'),
+  '',
+);
+
+// ---- 3h. 收口组 A3/A7/B4/B6/C3/C6/C8/C9 --------------------------------
+check(
+  'A3：已停用卡有独立降噪钩子，路径只露 .disabled 后缀',
+  clientCode.includes('.cockpit-row.is-disabled') &&
+    clientCode.includes("'data-disabled'") &&
+    clientCode.includes("'SKILL.md.disabled'"),
+  '',
+);
+check(
+  'A7：技术徽章（来源/形态/字节）只在展开时渲染',
+  clientCode.includes("className: 'cockpit-tech'") &&
+    clientCode.includes("'data-dsh-tech'") &&
+    !clientCode.includes("className: 'cockpit-tech', title:"),
+  '',
+);
+check(
+  'B4：搜索可切换是否匹配文件路径，并记住选择',
+  clientCode.includes("'data-dsh-search-path'") &&
+    clientCode.includes('prefs.searchPath') &&
+    clientCode.includes("String(skill.filePath || '').toLowerCase().includes(q)"),
+  '',
+);
+check(
+  'B6：汇总行带项目级只读条数',
+  clientCode.includes("'roots.projectReadonly'") &&
+    clientCode.includes('projectReadonlyCount'),
+  '',
+);
+check(
+  'C3：展开行提供复制名称 / 路径 / 目录',
+  ['data-dsh-copy-name', 'data-dsh-copy-path', 'data-dsh-copy-dir'].every((key) =>
+    clientCode.includes(key),
+  ),
+  '',
+);
+check(
+  'C6：正文内搜索并用 <mark> 高亮（字面匹配，不拼正则）',
+  clientCode.includes('bodyQuery') &&
+    clientCode.includes("h('mark'") &&
+    clientCode.includes("'data-dsh-body-search'"),
+  '',
+);
+check(
+  'C8：键盘 ↑↓ 移动焦点、空格走同一开关路径',
+  clientCode.includes("event.key === 'ArrowDown'") &&
+    clientCode.includes("event.key === 'Spacebar'") &&
+    clientCode.includes('event.currentTarget'),
+  '',
+);
+check(
+  'C9：未安装索引可复制安装提示（仍不安装）',
+  clientCode.includes("'data-dsh-index-hint'") &&
+    clientCode.includes("'index.installHint'") &&
+    clientCode.includes('不自动安装'),
   '',
 );
 
