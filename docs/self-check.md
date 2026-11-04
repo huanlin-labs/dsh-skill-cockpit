@@ -30,7 +30,7 @@
       对应物是「诚实边界 / Honest boundaries」段：只在 Windows 真机验过、macOS/Linux 的 CI 已跑但没有真机 DSH 会话、翻译依赖免费接口、一键修会改文件但有 `.bak`、不是沙箱、调用次数只是下界。
 
 - [x] **每个平台一个版本一个 tag，CHANGELOG 一条一条**
-      证据：1.5.1 已发 npm、tag `v1.5.1`、GitHub Release `v1.5.1`；1.5.6 是源码补丁（npm latest 仍 1.5.5），`CHANGELOG` 顶部为 `## 1.5.6 — 2026-11-03`，tag / Release 等待发布决定（见 `docs/status-ledger.md` §八）。macOS/Linux 在 CI 里跑语法、全量套件与 `verify:install`，仍不列为受支持平台。
+      证据：1.6.0 已发 npm、tag `v1.6.0`、GitHub Release `v1.6.0`；`CHANGELOG` 顶部为 `## 1.6.0 — 2026-11-04`。macOS/Linux 在 CI 里跑语法、全量套件与 `verify:install`，仍不列为受支持平台。
 
 - [x] **真机跑过至少一次"应当被拒"的调用，并把拒绝原文贴进 docs**
       证据：`test/run-repair.mjs` 的"缺描述且正文空：拒绝而不是编"、"没有 frontmatter：拒绝"、"根外文件：拒绝"，本轮实测 15/15；拒绝原文形如 `拒绝：description 缺失且正文里找不到可用的一句；请手动填写`。
@@ -40,5 +40,5 @@
 
 ## 一句话结论
 
-**9 条里 9 条有证据（1.5.1 基线）。** 1.5.6 是源码补丁，npm / tag / Release 的发布面仍待处理（见 `docs/status-ledger.md` §八）。CI run `41076632643` 的 27 个 job 全绿（ubuntu / macOS 15 / Windows × Node 20/22/24）；tag 后的 `registry-tag` 见 `docs/status-ledger.md`。
+**9 条里 9 条有证据（1.5.1 基线，1.6.0 复核）。** 1.6.0 的 npm / tag / Release 发布面已闭环（见 `docs/status-ledger.md` §十一）。CI run `41076632643` 的 27 个 job 全绿（ubuntu / macOS 15 / Windows × Node 20/22/24）。
 没做到"真机跑过一次被拒 + 出包能装能跑"之前，任何地方都不写"支持某某平台"。

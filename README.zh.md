@@ -1,10 +1,10 @@
 # dsh-skill-cockpit
 
-> **v1.5.6 · 已发布到 npm** ｜ `npm test` 19/19 套件全绿 ｜ `npm run verify:install` 13/13（pack → 空目录安装 → 用装机副本启动 → /ping 读回 1.5.6）｜ MIT
+> **v1.6.0 · 已发布到 npm** ｜ `npm test` 19/19 套件全绿 ｜ `npm run verify:install` 13/13（pack → 空目录安装 → 用装机副本启动 → /ping 读回 1.6.0）｜ MIT
 
-> **发布状态**：`v1.5.6` 已发布 npm、已打 git tag、已建 GitHub Release。1.5.6 修的是 1.5.2–1.5.5 遗留的版本串（`lib/index.js` / `lib/client.js` 一直写着 `1.5.1`），并修复「备份全部」返回 0 文件的问题。改动见 `CHANGELOG.md` 顶部。
+> **发布状态**：`v1.6.0` 已发布 npm、已打 git tag、已建 GitHub Release。1.6.0 包含 D/E 段界面增强（密度、吸顶、按根分组、正文搜索、键盘行操作、复制动作、路径搜索）与后备库 `reserveListPathOf` 修复。改动见 `CHANGELOG.md` 顶部。
 
-> **诚实边界。** 它**不是沙箱**：只管理 DSH 自己暴露的技能根，只写 `~/.dsh/skills` 与 `~/.agents/skills`；管不了别的进程、手工改动，也管不了绕过 DSH 的调用。CLI / doctor / `verify:install` 在本机 Windows 有自动化实测。宿主已于 2026-11-04 重启，`/ping` 返回 **1.5.6**。2026-11-03 在 1.5.6 页面实测：76/76 技能、体检 76 条无问题；本轮点过列表 / 分组 / 预设 / 用量 / 回收站 / 后备库 / 偏好 / 体检，并用临时坏技能验了一键修（补 name、补短描述、留 `.bak`，验完已把临时技能移走）；「备份全部」在磁盘上生成 76 个技能 / 2242 个文件 / 79,703,006 字节。**未逐按钮全量点完**，其余未单独实测的按钮仍按「未验证」看待、以其单测/接口证据为准。CI 已在 ubuntu / macOS / windows × Node 20/22/24 上跑全量套件与 `verify:install`。
+> **诚实边界。** 它**不是沙箱**：只管理 DSH 自己暴露的技能根，只写 `~/.dsh/skills` 与 `~/.agents/skills`；管不了别的进程、手工改动，也管不了绕过 DSH 的调用。CLI / doctor / `verify:install` 在本机 Windows 有自动化实测。宿主已于 2026-11-04 重启，`/ping` 返回 **1.6.0**。2026-11-03 在 1.5.6 页面实测：76/76 技能、体检 76 条无问题；本轮点过列表 / 分组 / 预设 / 用量 / 回收站 / 后备库 / 偏好 / 体检，并用临时坏技能验了一键修（补 name、补短描述、留 `.bak`，验完已把临时技能移走）；「备份全部」在磁盘上生成 76 个技能 / 2242 个文件 / 79,703,006 字节。**未逐按钮全量点完**，其余未单独实测的按钮仍按「未验证」看待、以其单测/接口证据为准。CI 已在 ubuntu / macOS / windows × Node 20/22/24 上跑全量套件与 `verify:install`。
 DSH（DeepSeek Harness）**技能面板**：在**左上应用级导航排**加一个「技能」入口，
 点开是**主区一整页**，列出本机**全部**技能、**按技能开关**，并接「未安装技能索引」做第二跳。
 
@@ -188,7 +188,7 @@ npx dsh-skill-cockpit-doctor
 npm install dsh-skill-cockpit
 ```
 
-（npm 上就是 **1.5.6**，与当前源码一致。想直接跑当前源码，用下面的本地 link。）
+（npm 上就是 **1.6.0**，与当前源码一致。想直接跑当前源码，用下面的本地 link。）
 
 ```jsonc
 // ~/.dsh/profiles/<profile>/package.json
