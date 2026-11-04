@@ -128,4 +128,4 @@
 | 自动化 | **全绿** | `npm test` 19/19；路由 85/85；客户端 111/111；文档 17/17；`verify:install` 13/13；渲染冒烟通过。 |
 | npm | **已发布** | `dsh-skill-cockpit@1.6.0` 已 publish；npm `dist-tags.latest` = **1.6.0**。 |
 | GitHub | **已同步** | `main` 推送 `d5705a5..9a20da5`；tag `v1.6.0` 已推送；Release：[v1.6.0](https://github.com/huanlin-labs/dsh-skill-cockpit/releases/tag/v1.6.0)。 |
-| release:check | **PASS 9 / FAIL 0 / UNKNOWN 1** | 版本、CHANGELOG、本地/远端 tag、GitHub Release、keywords、repository 均 PASS；npm 项因 `npm view` 网络超时记 UNKNOWN，随后用 registry `dist-tags` 独立核到 `latest=1.6.0`。 |
+| release:check | **PASS 10 / FAIL 0 / UNKNOWN 0** | 版本、CHANGELOG、npm latest、本地/远端 tag、GitHub Release、keywords、repository、bundle patch、GitHub topics 全部一致。 |
