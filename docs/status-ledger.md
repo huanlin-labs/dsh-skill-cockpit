@@ -130,3 +130,19 @@
 | GitHub | **已同步** | `main` 推送 `d5705a5..9a20da5`；tag `v1.6.0` 已推送；Release：[v1.6.0](https://github.com/huanlin-labs/dsh-skill-cockpit/releases/tag/v1.6.0)。 |
 | 运行中插件 | **1.6.0** | `plugin_manager` 禁用/启用 `include:skill-panel` 重载宿主半后，`GET /__dsh-skill-panel/ping` 返回 `{"name":"dsh-skill-cockpit","version":"1.6.0"}`。 |
 | release:check | **PASS 10 / FAIL 0 / UNKNOWN 0** | 版本、CHANGELOG、npm latest、本地/远端 tag、GitHub Release、keywords、repository、bundle patch、GitHub topics 全部一致。 |
+
+## 十二、2026-11-11 issue #1 修复 + v1.7.0 发布闭环
+
+> 发布提交 `95201a7`；tag `v1.7.0`（tag 对象 `0d2a108`）已推送到 GitHub。issue 作者 `lock-down` 已在 [#1](https://github.com/huanlin-labs/dsh-skill-cockpit/issues/1#issuecomment-6794490435) 收到通知。
+
+| 项 | 判定 | 证据 |
+|---|---|---|
+| 语义澄清 | **已落到 UI** | 「模型可见」悬停标题说明四条件；可见 < 启用时显示差额原因（仅人可用 / 遮蔽 / 入口异常）与「开关只改入口文件名，不会改 frontmatter」。回归断言 `data-dsh-visible-note` 文本含「仅人可用」「开关只改入口文件名」。 |
+| 顶栏降噪 | **已实现** | 自动加载关闭时只渲染 1 个 `data-dsh-autoload-toggle` 开关；`严格/标准/宽松` 只在开启后渲染。零项目级只读时汇总行不显示该项。 |
+| 三处版本串 | **已统一** | `package.json` / `lib/index.js` / `lib/client.js` 均为 `1.7.0`；页脚断言读回 1.7.0。 |
+| 自动化 | **全绿** | `npm test` 19/19；客户端 112/112；文档 17/17；`node --check` 两半通过。 |
+| npm | **已发布** | `dsh-skill-cockpit@1.7.0` 已 publish；npm `dist-tags.latest` = **1.7.0**。 |
+| GitHub | **已同步** | `main` 推送 `96163d5..95201a7`；tag `v1.7.0` 已推送；Release：[v1.7.0](https://github.com/huanlin-labs/dsh-skill-cockpit/releases/tag/v1.7.0)。 |
+| 运行中插件 | **1.7.0** | `plugin_manager` 禁用/启用 `include:skill-panel` 重载宿主半后，`GET /__dsh-skill-panel/ping` 返回 `1.7.0`。 |
+| release:check | **PASS 10 / FAIL 0 / UNKNOWN 0** | 四项一致，可以发版。 |
+| 通知 | **已发** | issue #1 评论 id `6794490435`，@`lock-down`，含口径说明、改动清单、升级提示与 Release 链接。 |
