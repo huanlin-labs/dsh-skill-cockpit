@@ -4,13 +4,13 @@
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![tests](https://img.shields.io/badge/tests-19%2F19%20suites-brightgreen)](test)
 
-> **v1.6.0 — published on npm.**
+> **v1.7.0 — published on npm.**
 > 19/19 self-test suites, all green · `npm run verify:install` packs the tarball, installs it into an
-> empty directory and boots **that copy** (13/13 checks; `/ping` reads back `1.6.0`).
-> Published as [`dsh-skill-cockpit`](https://www.npmjs.com/package/dsh-skill-cockpit); npm `latest` = **1.6.0**.
+> empty directory and boots **that copy** (13/13 checks; `/ping` reads back `1.7.0`).
+> Published as [`dsh-skill-cockpit`](https://www.npmjs.com/package/dsh-skill-cockpit); npm `latest` = **1.7.0**.
 > (The bare name `dsh-skill-panel` belongs to a different author.)
 
-> **Release:** `v1.6.0` is on npm, tagged in git, and has a GitHub Release. It delivers the D/E UI
+> **Release:** `v1.7.0` is on npm, tagged in git, and has a GitHub Release. It delivers the D/E UI
 > enhancements (density, sticky header, root grouping, body search, keyboard row actions, copy
 > actions, path-aware search) and fixes the vault page's missing `reserveListPathOf` helper.
 > Details are at the top of `CHANGELOG.md`.
@@ -19,7 +19,7 @@
 > exposes and writes only inside `~/.dsh/skills` and `~/.agents/skills`; it cannot stop other
 > processes, manual edits, or skills invoked outside DSH. CLI / doctor / `verify:install` are
 > covered by automated tests on this Windows machine. The running host was restarted on 2026-11-04
-> and `/ping` reports **1.6.0**. On 1.6.0 the live page renders 76/76 skills with a clean 76-item
+> and `/ping` reports **1.7.0**. On 1.7.0 the live page renders 76/76 skills with a clean 76-item
 > health check; this round exercised List / Groups / Presets / Usage / Trash / Vault / Preferences /
 > Checkup, plus one-click repair against a temporary malformed skill (name and short description
 > repaired, `.bak` written, fixture removed afterwards). `Back up all` produced 76 skills / 2242

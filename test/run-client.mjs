@@ -288,7 +288,7 @@ async function renderText(presetBoxes, props) {
 const a = await renderText({ 0: fixture, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null });
 const textA = a.text;
 
-check('渲染成功且含汇总行', textA.includes('共 2 条') && textA.includes('模型实际可见 1'), textA.split('\n').find((l) => l.includes('共 2 条')));
+check('渲染成功且含汇总行', textA.includes('共 2 条') && textA.includes('模型可见 1'), textA.split('\n').find((l) => l.includes('共 2 条')));
 check('渲染出正常技能名与描述', textA.includes('canvas-design') && textA.includes('生成 PNG/PDF 视觉稿'));
 check('渲染出坏 frontmatter 的红字原因', textA.includes('缺 frontmatter') && textA.includes('模型看不到它'));
 check('渲染出「已停用」标记', textA.includes('已停用'));
@@ -301,6 +301,36 @@ check('渲染出可交互按钮（刷新/筛选/看正文）', countType(a.tree,
 check('新增视图控件：密度 / 按根分组 / 导出清单', textA.includes('紧凑') && textA.includes('按根分组') && textA.includes('导出清单'));
 check('筛选条新增：被遮蔽 / 只读 / 被丢弃', ['被遮蔽', '只读', '被丢弃'].every((label) => textA.includes(label)));
 check('每行有单卡刷新按钮', textA.includes('刷新这一条'));
+
+// ---- 3a'''. explain why model-visible < enabled (the issue #1 confusion) ---
+const userOnlyFixture = {
+  ...fixture,
+  skills: [
+    ...fixture.skills,
+    {
+      name: 'human-only',
+      description: '只允许人手动调用',
+      source: 'user-dsh',
+      rank: 400,
+      form: 'dir-bundle',
+      enabled: true,
+      status: 'ok',
+      mode: 'user-only',
+      bytes: 120,
+      filePath: 'C:\\Users\\x\\.dsh\\skills\\human-only\\SKILL.md',
+      writable: true,
+    },
+  ],
+  summary: { ...fixture.summary, totalEntries: 3, enabled: 2, visibleToModel: 1 },
+};
+const visibilityView = await renderText({ 0: userOnlyFixture, 1: null, 2: false, 3: 'all', 4: '', 5: null, 6: null });
+check(
+  '说明「模型可见」差额：仅人可用 + 开关只改入口文件名',
+  visibilityView.text.includes('模型可见 1 / 启用 2') &&
+    visibilityView.text.includes('仅人可用') &&
+    visibilityView.text.includes('开关只改入口文件名'),
+  visibilityView.text.split('\n').find((l) => l.includes('模型可见 1 / 启用 2')),
+);
 
 // ---- 3a''. read-only filter only claims non-user roots ----------------------
 const readonlyView = await renderText({ 0: fixture, 1: null, 2: false, 3: 'readonly', 4: '', 5: null, 6: null });
@@ -991,8 +1021,8 @@ console.log(`\n报告已写：${join(reportDir, 'client-report.json')}`);
     !clientSource.includes("h('select'") && !clientSource.includes("'select',"),
   );
   check(
-    '六处下拉都走同一个 Picker 组件',
-    (clientSource.match(/h\(Picker,/g) || []).length === 6,
+    '七处下拉都走同一个 Picker 组件',
+    (clientSource.match(/h\(Picker,/g) || []).length === 7,
   );
   check(
     '下拉菜单自带底色与字色，不靠 color:inherit',
