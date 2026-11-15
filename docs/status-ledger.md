@@ -146,3 +146,20 @@
 | 运行中插件 | **1.7.0** | `plugin_manager` 禁用/启用 `include:skill-panel` 重载宿主半后，`GET /__dsh-skill-panel/ping` 返回 `1.7.0`。 |
 | release:check | **PASS 10 / FAIL 0 / UNKNOWN 0** | 四项一致，可以发版。 |
 | 通知 | **已发** | issue #1 评论 id `6794490435`，@`lock-down`，含口径说明、改动清单、升级提示与 Release 链接。 |
+
+## 十三、2026-11-15 issue #2 / #3 修复 + v1.7.1 发布闭环
+
+> 发布提交 `51a4e72`；tag `v1.7.1`（tag 对象 `719db61`，指向 `51a4e72`）已推送到 GitHub。
+
+| 项 | 判定 | 证据 |
+|---|---|---|
+| #2 空正文根因 | **已确认** | `scan.js` 的 `entryPath` 是技能目录（dir-bundle）或根目录（flat-md），`filePath` 才是入口文件；原实现读 `entryPath`，目录触发 `EISDIR` 后被 `catch` 吞掉，正文恒为空。 |
+| #2 修复 | **已实现** | `indexFromRows()` 优先读 `row.filePath`，缺 `filePath` 的旧行回退 `entryPath`。真实技能回归：`rows=77 / indexed=77 / withBody=77`（修复前 `withBody=0`）。 |
+| #3 修复 | **已实现** | `checks.js` 的 `summary.total` 改为 `checks.length`；`client.js` 体检条 `issueCount` 补上 `rootMissing` 与 `invalidEntry`。 |
+| 自动化 | **全绿** | `npm test` 19/19；诊断 57/57；自动加载接线 PASS；`node --check` 两半通过；`package.json` 无 BOM。 |
+| 三处版本串 | **已统一** | `package.json` / `lib/index.js` / `lib/client.js` 均为 `1.7.1`；`/ping` 读回 1.7.1。 |
+| npm | **已发布** | `dsh-skill-cockpit@1.7.1` 已 publish（tarball shasum `466fe65e…`，69 files）；npm `dist-tags.latest` = **1.7.1**。 |
+| release:check | **PASS 10 / FAIL 0 / UNKNOWN 0** | 版本 / CHANGELOG / npm latest / 本地与远端 tag / Release / keywords / repository / patch / topics 全一致。 |
+| GitHub | **已同步** | `main` = `51a4e72`；tag `v1.7.1` 已推送；Release：[v1.7.1](https://github.com/huanlin-labs/dsh-skill-cockpit/releases/tag/v1.7.1)。 |
+| 运行中插件 | **1.7.1** | `plugin_manager` 禁用/启用 `include:skill-panel` 后，`GET /__dsh-skill-panel/ping` 返回 `1.7.1`。 |
+| 通知 | **已发** | issue #2 评论 id `6893459885`、issue #3 评论 id `6893461825`，均 @`Zsx154855`，含根因、修复与 Release 链接。 |
