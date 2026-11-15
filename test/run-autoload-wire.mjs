@@ -101,6 +101,23 @@ run('indexFromRows 去重 + 停用传递', () => {
   assert.equal(idx[1].enabled, false);
 });
 
+run('indexFromRows 正文按 filePath 读取（dir-bundle + flat-md）', () => {
+  const dirRow = { name: 'pdf', entryPath: skillDir, filePath: entry };
+  assert.ok(indexFromRows([dirRow])[0].body.includes('改过的正文'), 'dir-bundle 应读 filePath 而不是目录');
+
+  const flatRoot = join(home, 'flat-skills');
+  mkdirSync(flatRoot, { recursive: true });
+  const flatFile = join(flatRoot, 'flat-demo.md');
+  writeFileSync(flatFile, '---\nname: flat-demo\ndescription: 扁平技能\n---\n\n# Flat demo body\n\n这段是扁平技能正文。\n', 'utf8');
+  const flatRow = { name: 'flat-demo', entryPath: flatRoot, filePath: flatFile };
+  assert.ok(indexFromRows([flatRow])[0].body.includes('这段是扁平技能正文'), 'flat-md 应读 filePath 而不是根目录');
+});
+
+run('indexFromRows 兼容只有 entryPath 的旧行（entryPath 本身是文件）', () => {
+  const idx = indexFromRows([{ name: 'legacy', entryPath: entry }]);
+  assert.ok(idx[0].body.includes('改过的正文'), '缺 filePath 时应回退 entryPath');
+});
+
 const skills = indexFromRows([{ name: 'pdf', description: '处理 PDF：读取、合并、拆分、加水印', entryPath: entry }]);
 const messages = [
   { role: 'system', content: 'sys' },

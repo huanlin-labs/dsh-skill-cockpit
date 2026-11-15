@@ -1,3 +1,10 @@
+## 1.7.1 — 2026-11-15
+
+### 修复 issue #2 / #3
+- **自动加载注入空正文（#2）**：`indexFromRows()` 原来把 `row.entryPath` 当作入口文件读取，但扫描结果里 `entryPath` 是技能目录（`dir-bundle`）或技能根目录（`flat-md`），`statSync` 读目录抛 `EISDIR` 后被 `catch` 吞掉，导致所有技能正文都变成空字符串。改为优先读 `row.filePath`（真正的入口文件），只有旧数据缺 `filePath` 时才回退 `entryPath`。
+- **`skill_panel(checkup)` 把技能数当问题数（#3）**：`checks.js` 的 `summary.total` 误用了 `skills.length`，改为 `checks.length`，与返回的 `checks` 条数一致。面板体检条同步补上 `rootMissing` 与 `invalidEntry` 两类，避免整根缺失/入口无效时少报问题。
+- 回归测试：新增 dir-bundle / flat-md 正文读取与旧行回退断言；新增「total = 问题条数，不是技能数」断言。`npm test` 19/19、诊断 57/57、自动加载接线 PASS。
+
 ## 1.7.0 — 2026-11-11
 
 ### 修复 issue #1：模型可见数量说不清 / 顶栏按钮太密

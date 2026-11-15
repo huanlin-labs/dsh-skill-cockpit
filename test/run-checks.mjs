@@ -310,8 +310,26 @@ const mixed = analyzeSkills(
   ]),
 );
 
-check('汇总：total = 上报条目数', mixed.summary.total === 4, String(mixed.summary.total));
+check('汇总：total = 问题条数', mixed.summary.total === 3, String(mixed.summary.total));
+check('汇总：total 与 checks.length 一致', mixed.summary.total === mixed.checks.length, `${mixed.summary.total}/${mixed.checks.length}`);
 check('汇总：scanned = 可分析条目数', mixed.summary.scanned === 4, String(mixed.summary.scanned));
+const oneProblemManySkills = analyzeSkills(
+  report([
+    goodSkill({ name: 'a-good' }),
+    goodSkill({ name: 'b-good' }),
+    goodSkill({
+      name: 'c-empty-desc',
+      description: '',
+      entryPath: 'C:\\Users\\x\\.dsh\\skills\\c-empty-desc',
+      filePath: 'C:\\Users\\x\\.dsh\\skills\\c-empty-desc\\SKILL.md',
+    }),
+  ]),
+);
+check(
+  '汇总：total = 问题条数，不是被扫描的技能数',
+  oneProblemManySkills.summary.total === 1 && oneProblemManySkills.summary.scanned === 3,
+  `total=${oneProblemManySkills.summary.total} scanned=${oneProblemManySkills.summary.scanned}`,
+);
 check('汇总：shortDescription 计数正确', mixed.summary.shortDescription === 1, String(mixed.summary.shortDescription));
 check('汇总：dirNameMismatch 计数正确', mixed.summary.dirNameMismatch === 1, String(mixed.summary.dirNameMismatch));
 check('汇总：shadowed 计数正确', mixed.summary.shadowed === 1, String(mixed.summary.shadowed));
